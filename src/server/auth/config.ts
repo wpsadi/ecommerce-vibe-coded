@@ -95,10 +95,9 @@ export const authConfig = {
 	},
 	pages: {
 		signIn: "/login",
-		signUp: "/signup",
 	},
 	callbacks: {
-					session: ({ session, user }) => ({
+		session: ({ session, user }) => ({
 			...session,
 			user: {
 				...session.user,
@@ -109,7 +108,7 @@ export const authConfig = {
 		jwt: ({ token, user }) => {
 			console.log("NextAuth JWT Callback - Token:", token);
 			console.log("NextAuth JWT Callback - User:", user);
-			
+
 			if (user) {
 				token.role = user.role;
 			}

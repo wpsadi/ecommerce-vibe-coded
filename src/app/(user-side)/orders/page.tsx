@@ -87,7 +87,7 @@ export default function OrdersPage() {
 		);
 	}
 
-	if (orders.length === 0) {
+	if (!orders || orders.length === 0) {
 		return (
 			<div className="min-h-screen bg-background">
 				<Header />
@@ -115,7 +115,7 @@ export default function OrdersPage() {
 				<h1 className="mb-8 font-bold text-3xl">My Orders</h1>
 
 				<div className="space-y-6">
-					{orders.map((order) => (
+					{orders?.map((order) => (
 						<Card key={order.id}>
 							<CardHeader>
 								<div className="flex items-center justify-between">

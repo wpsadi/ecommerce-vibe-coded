@@ -112,30 +112,30 @@ export async function getAllProducts(options?: {
 	}
 
 	if (conditions.length > 0) {
-		query = query.where(and(...conditions));
+		query = (query as any).where(and(...conditions));
 	}
 
 	// Apply sorting
 	switch (sortBy) {
 		case "name":
-			query = query.orderBy(
+			query = (query as any).orderBy(
 				sortOrder === "asc" ? asc(products.name) : desc(products.name),
 			);
 			break;
 		case "price":
-			query = query.orderBy(
+			query = (query as any).orderBy(
 				sortOrder === "asc" ? asc(products.price) : desc(products.price),
 			);
 			break;
 		case "rating":
-			query = query.orderBy(
+			query = (query as any).orderBy(
 				sortOrder === "asc"
 					? asc(sql`average_rating`)
 					: desc(sql`average_rating`),
 			);
 			break;
 		default:
-			query = query.orderBy(
+			query = (query as any).orderBy(
 				sortOrder === "asc"
 					? asc(products.createdAt)
 					: desc(products.createdAt),
@@ -144,11 +144,11 @@ export async function getAllProducts(options?: {
 
 	// Apply pagination
 	if (limit) {
-		query = query.limit(limit);
+		query = (query as any).limit(limit);
 	}
 
 	if (offset > 0) {
-		query = query.offset(offset);
+		query = (query as any).offset(offset);
 	}
 
 	return await query;
@@ -279,11 +279,11 @@ export async function getProductReviews(
 		.orderBy(desc(productReviews.createdAt));
 
 	if (limit) {
-		query = query.limit(limit);
+		query = (query as any).limit(limit);
 	}
 
 	if (offset > 0) {
-		query = query.offset(offset);
+		query = (query as any).offset(offset);
 	}
 
 	return await query;

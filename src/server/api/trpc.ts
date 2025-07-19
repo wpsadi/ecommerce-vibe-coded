@@ -26,13 +26,18 @@ import { db } from "@/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers, req: Request }) => {
-	const session = await auth({ req: opts.req });
+export const createTRPCContext = async (opts: {
+	headers: Headers;
+	req?: Request;
+}) => {
+	// For RSC calls, we may not have a req object, so we need to call auth differently
+	const session = await auth();
 
 	return {
 		db,
 		session,
-		...opts,
+		headers: opts.headers,
+		req: opts.req || new Request("http://localhost", { headers: opts.headers }),
 	};
 };
 

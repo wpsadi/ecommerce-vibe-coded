@@ -96,7 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 			if (result?.error) {
 				console.error("Signup login error:", result.error);
-				toast.error("Account created but login failed. Please try logging in manually.");
+				toast.error(
+					"Account created but login failed. Please try logging in manually.",
+				);
 				return false;
 			}
 
@@ -108,7 +110,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			}
 
 			console.error("Unexpected signup result:", result);
-			toast.error("Account created but login failed. Please try logging in manually.");
+			toast.error(
+				"Account created but login failed. Please try logging in manually.",
+			);
 			return false;
 		} catch (error) {
 			console.error("Signup error:", error);
