@@ -6,8 +6,8 @@ import { AuthProvider } from "@/contexts/auth-context";
 import { CartProvider } from "@/contexts/cart-context";
 import { WishlistProvider } from "@/contexts/wishlist-context";
 import { TRPCReactProvider } from "@/trpc/react";
-import { SessionProvider } from "next-auth/react";
-import { auth } from "@/server/auth";
+
+import SessionWrapper from "@/components/session-wrapper";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
@@ -15,13 +15,11 @@ export const metadata: Metadata = {
 	description: "E-commerce platform with user and admin features",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
 	children,
-	
 }: {
 	children: React.ReactNode;
 }) {
-	const session = await auth();
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body className="font-sans antialiased">
@@ -33,7 +31,7 @@ export default async function RootLayout({
 						disableTransitionOnChange={false}
 						storageKey="ecommerce-theme"
 					>
-						<SessionProvider session={session}>
+						<SessionWrapper>
 							<AuthProvider>
 								<CartProvider>
 									<WishlistProvider>
@@ -42,7 +40,7 @@ export default async function RootLayout({
 									</WishlistProvider>
 								</CartProvider>
 							</AuthProvider>
-						</SessionProvider>
+						</SessionWrapper>
 					</ThemeProvider>
 				</TRPCReactProvider>
 			</body>
