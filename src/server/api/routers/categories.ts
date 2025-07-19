@@ -1,4 +1,4 @@
-import * as categoryService from "@/lib/categories";
+import { categories } from "@/lib/mock-data";
 import {
 	createTRPCRouter,
 	protectedProcedure,
@@ -7,29 +7,25 @@ import {
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-const createCategorySchema = z.object({
-	name: z.string().min(1, "Name is required"),
-	slug: z.string().min(1, "Slug is required"),
-	description: z.string().optional(),
-	icon: z.string().optional(),
-	image: z.string().optional(),
-	featured: z.boolean().optional(),
-	active: z.boolean().optional(),
-	sortOrder: z.number().optional(),
-	metaTitle: z.string().optional(),
-	metaDescription: z.string().optional(),
-});
-
-const updateCategorySchema = createCategorySchema.partial().extend({
-	id: z.string().min(1, "Category ID is required"),
-});
-
 export const categoriesRouter = createTRPCRouter({
 	// Get all categories
 	getAll: publicProcedure.query(async () => {
 		try {
-			return await categoryService.getAllCategories();
+			return categories.map(cat => ({
+				id: cat.id,
+				name: cat.name,
+				slug: cat.id,
+				description: cat.description,
+				icon: cat.icon,
+				image: cat.image,
+				featured: cat.featured,
+				active: true,
+				productCount: cat.productCount,
+				createdAt: new Date(cat.createdAt),
+				updatedAt: new Date(cat.updatedAt),
+			}));
 		} catch (error) {
+			console.error("Categories getAll error:", error);
 			throw new TRPCError({
 				code: "INTERNAL_SERVER_ERROR",
 				message: "Failed to fetch categories",
@@ -41,8 +37,23 @@ export const categoriesRouter = createTRPCRouter({
 	// Get featured categories
 	getFeatured: publicProcedure.query(async () => {
 		try {
-			return await categoryService.getFeaturedCategories();
+			return categories
+				.filter(cat => cat.featured)
+				.map(cat => ({
+					id: cat.id,
+					name: cat.name,
+					slug: cat.id,
+					description: cat.description,
+					icon: cat.icon,
+					image: cat.image,
+					featured: cat.featured,
+					active: true,
+					productCount: cat.productCount,
+					createdAt: new Date(cat.createdAt),
+					updatedAt: new Date(cat.updatedAt),
+				}));
 		} catch (error) {
+			console.error("Categories getFeatured error:", error);
 			throw new TRPCError({
 				code: "INTERNAL_SERVER_ERROR",
 				message: "Failed to fetch featured categories",
@@ -56,200 +67,33 @@ export const categoriesRouter = createTRPCRouter({
 		.input(z.object({ id: z.string().min(1) }))
 		.query(async ({ input }) => {
 			try {
-				const category = await categoryService.getCategoryById(input.id);
+				const category = categories.find(cat => cat.id === input.id);
 				if (!category) {
 					throw new TRPCError({
 						code: "NOT_FOUND",
 						message: "Category not found",
 					});
 				}
-				return category;
+
+				return {
+					id: category.id,
+					name: category.name,
+					slug: category.id,
+					description: category.description,
+					icon: category.icon,
+					image: category.image,
+					featured: category.featured,
+					active: true,
+					productCount: category.productCount,
+					createdAt: new Date(category.createdAt),
+					updatedAt: new Date(category.updatedAt),
+				};
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
+				console.error("Categories getById error:", error);
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "Failed to fetch category",
-					cause: error,
-				});
-			}
-		}),
-
-	// Get category by slug
-	getBySlug: publicProcedure
-		.input(z.object({ slug: z.string().min(1) }))
-		.query(async ({ input }) => {
-			try {
-				const category = await categoryService.getCategoryBySlug(input.slug);
-				if (!category) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Category not found",
-					});
-				}
-				return category;
-			} catch (error) {
-				if (error instanceof TRPCError) throw error;
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to fetch category",
-					cause: error,
-				});
-			}
-		}),
-
-	// Create category (admin only)
-	create: protectedProcedure
-		.input(createCategorySchema)
-		.mutation(async ({ input, ctx }) => {
-			// Check if user is admin
-			if (ctx.session.user.role !== "admin") {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "Admin access required",
-				});
-			}
-
-			try {
-				return await categoryService.createCategory(input);
-			} catch (error) {
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to create category",
-					cause: error,
-				});
-			}
-		}),
-
-	// Update category (admin only)
-	update: protectedProcedure
-		.input(updateCategorySchema)
-		.mutation(async ({ input, ctx }) => {
-			// Check if user is admin
-			if (ctx.session.user.role !== "admin") {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "Admin access required",
-				});
-			}
-
-			try {
-				const { id, ...updateData } = input;
-				const category = await categoryService.updateCategory(id, updateData);
-				if (!category) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Category not found",
-					});
-				}
-				return category;
-			} catch (error) {
-				if (error instanceof TRPCError) throw error;
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to update category",
-					cause: error,
-				});
-			}
-		}),
-
-	// Delete category (admin only)
-	delete: protectedProcedure
-		.input(z.object({ id: z.string().min(1) }))
-		.mutation(async ({ input, ctx }) => {
-			// Check if user is admin
-			if (ctx.session.user.role !== "admin") {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "Admin access required",
-				});
-			}
-
-			try {
-				const category = await categoryService.deleteCategory(input.id);
-				if (!category) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Category not found",
-					});
-				}
-				return category;
-			} catch (error) {
-				if (error instanceof TRPCError) throw error;
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to delete category",
-					cause: error,
-				});
-			}
-		}),
-
-	// Toggle category featured status (admin only)
-	toggleFeatured: protectedProcedure
-		.input(
-			z.object({
-				id: z.string().min(1),
-				featured: z.boolean(),
-			}),
-		)
-		.mutation(async ({ input, ctx }) => {
-			// Check if user is admin
-			if (ctx.session.user.role !== "admin") {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "Admin access required",
-				});
-			}
-
-			try {
-				const category = await categoryService.toggleCategoryFeatured(
-					input.id,
-					input.featured,
-				);
-				if (!category) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Category not found",
-					});
-				}
-				return category;
-			} catch (error) {
-				if (error instanceof TRPCError) throw error;
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to update category",
-					cause: error,
-				});
-			}
-		}),
-
-	// Update categories sort order (admin only)
-	updateSortOrder: protectedProcedure
-		.input(
-			z.object({
-				updates: z.array(
-					z.object({
-						id: z.string().min(1),
-						sortOrder: z.number(),
-					}),
-				),
-			}),
-		)
-		.mutation(async ({ input, ctx }) => {
-			// Check if user is admin
-			if (ctx.session.user.role !== "admin") {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "Admin access required",
-				});
-			}
-
-			try {
-				await categoryService.updateCategorySortOrder(input.updates);
-				return { success: true };
-			} catch (error) {
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to update category sort order",
 					cause: error,
 				});
 			}
