@@ -69,17 +69,39 @@ export default function AddCategoryPage() {
 		setUploading(true);
 
 		try {
-			// Simulate upload delay
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+			// Generate unique filename
+			const timestamp = Date.now();
+			const randomId = Math.random().toString(36).substring(2, 15);
+			const fileExtension = file.name.split(".").pop() || "jpg";
+			const filename = `category-${timestamp}-${randomId}.${fileExtension}`;
 
-			// In a real app, you would upload to a cloud service
-			const mockUrl = `/placeholder.svg?height=200&width=300&text=${encodeURIComponent(file.name)}`;
+			// Upload to server
+			const uploadResponse = await fetch(
+				`/api/upload?filename=${encodeURIComponent(filename)}`,
+				{
+					method: "POST",
+					body: file,
+					headers: {
+						"Content-Type": file.type,
+					},
+				},
+			);
 
-			setFormData((prev) => ({ ...prev, image: mockUrl }));
+			if (!uploadResponse.ok) {
+				const errorData = await uploadResponse.json();
+				throw new Error(errorData.error || "Upload failed");
+			}
+
+			const uploadData = await uploadResponse.json();
+			setFormData((prev) => ({ ...prev, image: uploadData.url }));
 
 			toast.success("Category image uploaded successfully");
 		} catch (error) {
-			toast.error("Failed to upload image. Please try again.");
+			console.error("Upload error:", error);
+			// Fallback to placeholder for development
+			const mockUrl = `/placeholder.svg?height=200&width=300&text=${encodeURIComponent(file.name)}`;
+			setFormData((prev) => ({ ...prev, image: mockUrl }));
+			toast.warning("Using placeholder image (upload service not configured)");
 		} finally {
 			setUploading(false);
 		}
