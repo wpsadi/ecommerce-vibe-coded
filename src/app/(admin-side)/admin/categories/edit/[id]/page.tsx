@@ -1,352 +1,475 @@
-"use client"
+"use client";
 
-import type React from "react"
+import { Header } from "@/components/header";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+	Form,
+	FormControl,
+	FormDescription,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import {
+	useAssignProductsToCategory,
+	useCategory,
+	useProducts,
+	useUpdateCategory,
+} from "@/hooks/use-trpc-hooks";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, Package, Upload, X } from "lucide-react";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import type { SubmitHandler } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
-import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
-import Image from "next/image"
-import { Upload, X, Package } from "lucide-react"
-import { Header } from "@/components/header"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useAuth } from "@/contexts/auth-context"
-import { toast } from "sonner"
-import { categories, mockProducts, type Category, type Product } from "@/lib/mock-data"
+const categoryFormSchema = z.object({
+	name: z.string().min(1, "Name is required"),
+	slug: z.string().min(1, "Slug is required"),
+	description: z.string().optional(),
+	icon: z.string().optional(),
+	image: z.string().optional(),
+	featured: z.boolean().optional(),
+	active: z.boolean().optional(),
+	sortOrder: z.number().optional(),
+	metaTitle: z.string().optional(),
+	metaDescription: z.string().optional(),
+});
+
+type CategoryFormValues = z.infer<typeof categoryFormSchema>;
 
 export default function EditCategoryPage() {
-  const { user } = useAuth()
-  const router = useRouter()
-  const params = useParams()
+	const { id: categoryId } = useParams() as { id: string };
+	const router = useRouter();
 
-  const [loading, setLoading] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [category, setCategory] = useState<Category | null>(null)
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    icon: "",
-    image: "",
-    featured: false,
-  })
-  const [assignedProducts, setAssignedProducts] = useState<string[]>([])
-  const [availableProducts, setAvailableProducts] = useState<Product[]>([])
+	const {
+		data: category,
+		isPending: isPendingCategory,
+		isError: isErrorCategory,
+	} = useCategory(categoryId);
 
-  useEffect(() => {
-    if (!user || user.role !== "admin") {
-      router.push("/login")
-      return
-    }
+	const { data: categoryProducts, isPending: isPendingCategoryProducts } =
+		useProducts({ categoryId: categoryId });
 
-    const categoryId = params.id as string
-    const foundCategory = categories.find((c) => c.id === categoryId)
+	const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+	const [uploading, setUploading] = useState(false);
 
-    if (foundCategory) {
-      setCategory(foundCategory)
-      setFormData({
-        name: foundCategory.name,
-        description: foundCategory.description,
-        icon: foundCategory.icon,
-        image: foundCategory.image || "",
-        featured: foundCategory.featured,
-      })
+	const form = useForm<CategoryFormValues>({
+		resolver: zodResolver(categoryFormSchema),
+		defaultValues: {
+			name: "",
+			slug: "",
+			description: "",
+			icon: "",
+			image: "",
+			featured: false,
+			active: true,
+			sortOrder: 0,
+			metaTitle: "",
+			metaDescription: "",
+		},
+	});
 
-      // Get products assigned to this category
-      const categoryProducts = mockProducts.filter((p) => p.categoryId === categoryId)
-      setAssignedProducts(categoryProducts.map((p) => p.id))
+	const { reset } = form;
 
-      // Get all products for assignment
-      setAvailableProducts(mockProducts)
-    }
-  }, [user, router, params.id])
+	useEffect(() => {
+		if (category) {
+			reset({
+				name: category.name,
+				slug: category.slug,
+				description: category.description ?? "",
+				icon: category.icon ?? "",
+				image: category.image ?? "",
+				featured: category.featured,
+				active: category.active,
+				sortOrder: category.sortOrder,
+				metaTitle: category.metaTitle ?? "",
+				metaDescription: category.metaDescription ?? "",
+			});
+		}
+	}, [category, reset]);
 
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+	useEffect(() => {
+		if (categoryProducts) {
+			setSelectedProducts(categoryProducts.map((p) => p.id));
+		}
+	}, [categoryProducts]);
 
-  const handleImageUpload = async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please upload only image files")
-      return
-    }
+	const {
+		data: products = [],
+		isPending: isPendingProducts,
+		isError: isErrorProducts,
+	} = useProducts();
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Please upload images smaller than 5MB")
-      return
-    }
+	const updateCategoryMutation = useUpdateCategory();
+	const assignProductsToCategory = useAssignProductsToCategory();
 
-    setUploading(true)
+	const onSubmit: SubmitHandler<CategoryFormValues> = async (data) => {
+		try {
+			await updateCategoryMutation.mutateAsync({
+				id: categoryId,
+				...data,
+			});
+			router.push("/admin/categories");
+		} catch (error) {
+			// Error is already handled by the hook
+		}
+	};
 
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      const mockUrl = `/placeholder.svg?height=200&width=300&text=${encodeURIComponent(file.name)}`
+	const handleImageUpload = async (file: File | undefined) => {
+		if (!file) return;
+		setUploading(true);
+		try {
+			// In a real app, you would upload to a service.
+			// For now, we'll simulate and use a placeholder.
+			await new Promise((res) => setTimeout(res, 1000));
+			const mockUrl = `/placeholder-image.svg?text=${file.name}`;
+			form.setValue("image", mockUrl, { shouldValidate: true });
+			toast.success("Image uploaded successfully");
+		} catch (err) {
+			toast.error("Image upload failed. Please try again.");
+		} finally {
+			setUploading(false);
+		}
+	};
 
-      setFormData((prev) => ({ ...prev, image: mockUrl }))
+	const handleProductSelection = (productId: string, checked: boolean) => {
+		setSelectedProducts((prev) =>
+			checked ? [...prev, productId] : prev.filter((id) => id !== productId),
+		);
+	};
 
-      toast.success("Category image uploaded successfully")
-    } catch (error) {
-      toast.error("Failed to upload image. Please try again.")
-    } finally {
-      setUploading(false)
-    }
-  }
+	const handleAssignProducts = async () => {
+		try {
+			await assignProductsToCategory.mutateAsync({
+				categoryId,
+				productIds: selectedProducts,
+			});
+		} catch (error) {
+			// Error handled by hook
+		}
+	};
 
-  const handleProductAssignment = (productId: string, assigned: boolean) => {
-    if (assigned) {
-      setAssignedProducts((prev) => [...prev, productId])
-    } else {
-      setAssignedProducts((prev) => prev.filter((id) => id !== productId))
-    }
-  }
+	if (isPendingCategory) {
+		return (
+			<div className="flex h-screen items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin" />
+			</div>
+		);
+	}
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+	if (isErrorCategory || !category) {
+		return (
+			<div className="flex h-screen flex-col items-center justify-center gap-4">
+				<h1 className="font-bold text-2xl">Category Not Found</h1>
+				<Button onClick={() => router.push("/admin/categories")}>
+					Back to Categories
+				</Button>
+			</div>
+		);
+	}
 
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+	return (
+		<div className="min-h-screen bg-background">
+			<Header />
+			<main className="container mx-auto px-4 py-8">
+				<div className="mx-auto max-w-4xl">
+					<div className="mb-8 flex items-center justify-between">
+						<div>
+							<h1 className="font-bold text-3xl">Edit Category</h1>
+							<p className="text-muted-foreground">
+								Manage your category details and associated products.
+							</p>
+						</div>
+						<Button variant="outline" onClick={() => router.back()}>
+							← Back
+						</Button>
+					</div>
 
-      toast.success("Category has been successfully updated")
+					<div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+						<div className="lg:col-span-2">
+							<Form {...form}>
+								<form
+									onSubmit={form.handleSubmit(onSubmit)}
+									className="space-y-8"
+								>
+									<Card>
+										<CardHeader>
+											<CardTitle>Category Details</CardTitle>
+										</CardHeader>
+										<CardContent className="space-y-6">
+											<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+												<FormField
+													control={form.control}
+													name="name"
+													render={({ field }) => (
+														<FormItem>
+															<FormLabel>Category Name</FormLabel>
+															<FormControl>
+																<Input
+																	placeholder="e.g. Electronics"
+																	{...field}
+																/>
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+												<FormField
+													control={form.control}
+													name="slug"
+													render={({ field }) => (
+														<FormItem>
+															<FormLabel>Slug</FormLabel>
+															<FormControl>
+																<Input
+																	placeholder="e.g. electronics"
+																	{...field}
+																/>
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+											</div>
+											<FormField
+												control={form.control}
+												name="description"
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel>Description</FormLabel>
+														<FormControl>
+															<Textarea
+																placeholder="A brief description of the category."
+																{...field}
+																value={field.value ?? ""}
+															/>
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+											<FormField
+												control={form.control}
+												name="image"
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel>Category Image</FormLabel>
+														<FormControl>
+															<div>
+																{field.value ? (
+																	<div className="relative h-48 w-full">
+																		<Image
+																			src={field.value}
+																			alt="Category Image"
+																			fill
+																			className="rounded-md object-cover"
+																		/>
+																		<Button
+																			variant="destructive"
+																			size="icon"
+																			className="absolute top-2 right-2 h-6 w-6"
+																			onClick={() => field.onChange("")}
+																		>
+																			<X className="h-4 w-4" />
+																		</Button>
+																	</div>
+																) : (
+																	<div className="flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed">
+																		<input
+																			type="file"
+																			id="image-upload"
+																			className="hidden"
+																			accept="image/*"
+																			onChange={(e) =>
+																				handleImageUpload(e.target.files?.[0])
+																			}
+																			disabled={uploading}
+																		/>
+																		<label
+																			htmlFor="image-upload"
+																			className="flex h-full w-full cursor-pointer flex-col items-center justify-center"
+																		>
+																			{uploading ? (
+																				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+																			) : (
+																				<>
+																					<Upload className="mb-2 h-8 w-8 text-muted-foreground" />
+																					<p>Upload an image</p>
+																				</>
+																			)}
+																		</label>
+																	</div>
+																)}
+															</div>
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+										</CardContent>
+										<CardFooter>
+											<Button
+												type="submit"
+												disabled={updateCategoryMutation.isPending}
+											>
+												{updateCategoryMutation.isPending
+													? "Saving..."
+													: "Save Changes"}
+											</Button>
+										</CardFooter>
+									</Card>
+								</form>
+							</Form>
+						</div>
 
-      router.push("/admin/categories")
-    } catch (error) {
-      toast.error("Failed to update category. Please try again.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (!user || user.role !== "admin") {
-    return null
-  }
-
-  if (!category) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Category Not Found</h1>
-            <Button onClick={() => router.push("/admin/categories")}>Back to Categories</Button>
-          </div>
-        </main>
-      </div>
-    )
-  }
-
-  return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-4 mb-8">
-            <Button variant="outline" onClick={() => router.back()}>
-              ← Back
-            </Button>
-            <h1 className="text-3xl font-bold">Edit Category</h1>
-          </div>
-
-          <Tabs defaultValue="details" className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="details">Category Details</TabsTrigger>
-              <TabsTrigger value="products">Assign Products ({assignedProducts.length})</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="details">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Category Details</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="name">Category Name *</Label>
-                        <Input
-                          id="name"
-                          value={formData.name}
-                          onChange={(e) => handleInputChange("name", e.target.value)}
-                          required
-                          placeholder="Enter category name"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="icon">Icon Emoji *</Label>
-                        <Input
-                          id="icon"
-                          value={formData.icon}
-                          onChange={(e) => handleInputChange("icon", e.target.value)}
-                          required
-                          placeholder="📱"
-                          maxLength={2}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="description">Description *</Label>
-                      <Textarea
-                        id="description"
-                        value={formData.description}
-                        onChange={(e) => handleInputChange("description", e.target.value)}
-                        required
-                        placeholder="Enter category description"
-                        rows={3}
-                      />
-                    </div>
-
-                    {/* Category Image Upload */}
-                    <div>
-                      <Label>Category Image</Label>
-                      <div className="mt-2">
-                        {formData.image ? (
-                          <div className="relative inline-block">
-                            <Image
-                              src={formData.image || "/placeholder.svg"}
-                              alt="Category preview"
-                              width={200}
-                              height={120}
-                              className="rounded-lg object-cover border"
-                            />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                              onClick={() => setFormData((prev) => ({ ...prev, image: "" }))}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-muted-foreground/50 transition-colors">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0]
-                                if (file) handleImageUpload(file)
-                              }}
-                              className="hidden"
-                              id="category-image-upload"
-                              disabled={uploading}
-                            />
-                            <label
-                              htmlFor="category-image-upload"
-                              className={`cursor-pointer ${uploading ? "cursor-not-allowed opacity-50" : ""}`}
-                            >
-                              <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                              <p className="text-sm font-medium mb-1">
-                                {uploading ? "Uploading..." : "Upload Category Image"}
-                              </p>
-                              <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 5MB</p>
-                            </label>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Featured Toggle */}
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <Label htmlFor="featured" className="text-base font-medium">
-                          Featured on Home Page
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Display this category prominently on the home page
-                        </p>
-                      </div>
-                      <Switch
-                        id="featured"
-                        checked={formData.featured}
-                        onCheckedChange={(checked) => handleInputChange("featured", checked)}
-                      />
-                    </div>
-
-                    <div className="flex gap-4">
-                      <Button type="submit" disabled={loading} className="flex-1">
-                        {loading ? "Updating Category..." : "Update Category"}
-                      </Button>
-                      <Button type="button" variant="outline" onClick={() => router.back()}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="products">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Package className="h-5 w-5" />
-                    Assign Products to Category
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {availableProducts.length === 0 ? (
-                      <div className="text-center py-8">
-                        <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                        <p className="text-muted-foreground">No products available</p>
-                      </div>
-                    ) : (
-                      <div className="grid gap-4">
-                        {availableProducts.map((product) => (
-                          <div key={product.id} className="flex items-center space-x-3 p-4 border rounded-lg">
-                            <Checkbox
-                              id={product.id}
-                              checked={assignedProducts.includes(product.id)}
-                              onCheckedChange={(checked) => handleProductAssignment(product.id, checked as boolean)}
-                            />
-                            <Image
-                              src={product.image || "/placeholder.svg"}
-                              alt={product.name}
-                              width={60}
-                              height={60}
-                              className="rounded object-cover"
-                            />
-                            <div className="flex-1">
-                              <Label htmlFor={product.id} className="font-medium cursor-pointer">
-                                {product.name}
-                              </Label>
-                              <p className="text-sm text-muted-foreground">₹{product.price.toLocaleString()}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="outline">{product.category}</Badge>
-                                <Badge variant={product.stock > 0 ? "default" : "secondary"}>
-                                  {product.stock > 0 ? "In Stock" : "Out of Stock"}
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="flex justify-between items-center pt-4 border-t">
-                      <p className="text-sm text-muted-foreground">
-                        {assignedProducts.length} products assigned to this category
-                      </p>
-                      <Button onClick={handleSubmit} disabled={loading}>
-                        {loading ? "Saving..." : "Save Product Assignments"}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
-    </div>
-  )
+						<div className="space-y-8">
+							<Card>
+								<CardHeader>
+									<CardTitle>Status</CardTitle>
+								</CardHeader>
+								<CardContent className="space-y-4">
+									<FormField
+										control={form.control}
+										name="active"
+										render={({ field }) => (
+											<FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+												<div className="space-y-0.5">
+													<FormLabel>Active</FormLabel>
+													<FormDescription>
+														Inactive categories are hidden from the store.
+													</FormDescription>
+												</div>
+												<FormControl>
+													<Switch
+														checked={field.value}
+														onCheckedChange={field.onChange}
+													/>
+												</FormControl>
+											</FormItem>
+										)}
+									/>
+									<FormField
+										control={form.control}
+										name="featured"
+										render={({ field }) => (
+											<FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+												<div className="space-y-0.5">
+													<FormLabel>Featured</FormLabel>
+													<FormDescription>
+														Featured categories appear on the homepage.
+													</FormDescription>
+												</div>
+												<FormControl>
+													<Switch
+														checked={field.value}
+														onCheckedChange={field.onChange}
+													/>
+												</FormControl>
+											</FormItem>
+										)}
+									/>
+								</CardContent>
+							</Card>
+							<Card>
+								<CardHeader>
+									<CardTitle>Products</CardTitle>
+									<CardDescription>
+										Assign products to this category.
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									{isPendingProducts || isPendingCategoryProducts ? (
+										<div className="py-8 text-center">
+											<Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
+											<p className="mt-2 text-muted-foreground">
+												Loading products...
+											</p>
+										</div>
+									) : isErrorProducts ? (
+										<div className="py-8 text-center text-destructive">
+											<p>Failed to load products.</p>
+										</div>
+									) : products.length === 0 ? (
+										<div className="py-8 text-center">
+											<Package className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+											<h3 className="font-semibold text-lg">
+												No Products Found
+											</h3>
+											<p className="text-muted-foreground">
+												No products have been created yet.
+											</p>
+										</div>
+									) : (
+										<div className="max-h-96 space-y-2 overflow-y-auto pr-2">
+											{products.map((product) => (
+												<div
+													key={product.id}
+													className="flex items-center space-x-3 rounded-lg border p-2"
+												>
+													<Checkbox
+														id={product.id}
+														checked={selectedProducts.includes(product.id)}
+														onCheckedChange={(checked) =>
+															handleProductSelection(product.id, !!checked)
+														}
+													/>
+													<div className="relative h-12 w-12 flex-shrink-0">
+														{/* 
+                              TODO: The 'product' type from useProducts doesn't include images. 
+                              Update the 'getAllProducts' service in 'src/lib/products.ts' 
+                              to include the images relation.
+                            */}
+													</div>
+													<div className="flex-1">
+														<Label
+															htmlFor={product.id}
+															className="cursor-pointer font-medium text-sm"
+														>
+															{product.name}
+														</Label>
+													</div>
+												</div>
+											))}
+										</div>
+									)}
+								</CardContent>
+								{products.length > 0 && (
+									<CardFooter>
+										<Button
+											className="w-full"
+											onClick={handleAssignProducts}
+											disabled={assignProductsToCategory.isPending}
+										>
+											{assignProductsToCategory.isPending
+												? "Assigning..."
+												: `Assign ${selectedProducts.length} Products`}
+										</Button>
+									</CardFooter>
+								)}
+							</Card>
+						</div>
+					</div>
+				</div>
+			</main>
+		</div>
+	);
 }

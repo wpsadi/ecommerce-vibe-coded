@@ -1,12 +1,17 @@
-import { relations, sql } from "drizzle-orm"
-import { index, pgTableCreator, primaryKey, numeric } from "drizzle-orm/pg-core"
-import type { AdapterAccount } from "next-auth/adapters"
+import { relations, sql } from "drizzle-orm";
+import {
+	index,
+	numeric,
+	pgTableCreator,
+	primaryKey,
+} from "drizzle-orm/pg-core";
+import type { AdapterAccount } from "next-auth/adapters";
 
 /**
  * Multi-project schema for e-commerce platform
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = pgTableCreator((name) => `ecommerce_${name}`)
+export const createTable = pgTableCreator((name) => `ecommerce_${name}`);
 
 // ============================================================================
 // AUTH TABLES (NextAuth.js integration)
@@ -29,14 +34,21 @@ export const users = createTable(
 			})
 			.default(sql`CURRENT_TIMESTAMP`),
 		image: d.varchar({ length: 255 }),
+		password: d.varchar({ length: 255 }),
 		phone: d.varchar({ length: 20 }),
 		role: d.varchar({ length: 50 }).notNull().default("user"), // user, admin
 		blocked: d.boolean().notNull().default(false),
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
-	(t) => [index("user_email_idx").on(t.email), index("user_role_idx").on(t.role)],
-)
+	(t) => [
+		index("user_email_idx").on(t.email),
+		index("user_role_idx").on(t.role),
+	],
+);
 
 export const accounts = createTable(
 	"account",
@@ -56,8 +68,11 @@ export const accounts = createTable(
 		id_token: d.text(),
 		session_state: d.varchar({ length: 255 }),
 	}),
-	(t) => [primaryKey({ columns: [t.provider, t.providerAccountId] }), index("account_user_id_idx").on(t.userId)],
-)
+	(t) => [
+		primaryKey({ columns: [t.provider, t.providerAccountId] }),
+		index("account_user_id_idx").on(t.userId),
+	],
+);
 
 export const sessions = createTable(
 	"session",
@@ -70,7 +85,7 @@ export const sessions = createTable(
 		expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
 	}),
 	(t) => [index("session_user_id_idx").on(t.userId)],
-)
+);
 
 export const verificationTokens = createTable(
 	"verification_token",
@@ -80,7 +95,7 @@ export const verificationTokens = createTable(
 		expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
 	}),
 	(t) => [primaryKey({ columns: [t.identifier, t.token] })],
-)
+);
 
 // ============================================================================
 // CATEGORY TABLES
@@ -104,7 +119,10 @@ export const categories = createTable(
 		sortOrder: d.integer().notNull().default(0),
 		metaTitle: d.varchar({ length: 255 }),
 		metaDescription: d.text(),
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
@@ -113,7 +131,7 @@ export const categories = createTable(
 		index("category_active_idx").on(t.active),
 		index("category_sort_order_idx").on(t.sortOrder),
 	],
-)
+);
 
 // ============================================================================
 // PRODUCT TABLES
@@ -143,12 +161,16 @@ export const products = createTable(
 		lowStockThreshold: d.integer().notNull().default(10),
 		weight: d.numeric({ precision: 8, scale: 2 }),
 		dimensions: d.jsonb().$type<{
-			length?: number
-			width?: number
-			height?: number
-			unit?: string
+			length?: number;
+			width?: number;
+			height?: number;
+			unit?: string;
 		}>(),
-		specifications: d.jsonb().$type<Record<string, string>>().notNull().default({}),
+		specifications: d
+			.jsonb()
+			.$type<Record<string, string>>()
+			.notNull()
+			.default({}),
 		tags: d.jsonb().$type<string[]>().notNull().default([]),
 		featured: d.boolean().notNull().default(false),
 		active: d.boolean().notNull().default(true),
@@ -157,7 +179,10 @@ export const products = createTable(
 		allowBackorder: d.boolean().notNull().default(false),
 		metaTitle: d.varchar({ length: 255 }),
 		metaDescription: d.text(),
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
@@ -170,7 +195,7 @@ export const products = createTable(
 		index("product_active_idx").on(t.active),
 		index("product_created_at_idx").on(t.createdAt),
 	],
-)
+);
 
 export const productImages = createTable(
 	"product_image",
@@ -188,14 +213,17 @@ export const productImages = createTable(
 		altText: d.varchar({ length: 255 }),
 		sortOrder: d.integer().notNull().default(0),
 		isPrimary: d.boolean().notNull().default(false),
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 	}),
 	(t) => [
 		index("product_image_product_idx").on(t.productId),
 		index("product_image_sort_order_idx").on(t.sortOrder),
 		index("product_image_primary_idx").on(t.isPrimary),
 	],
-)
+);
 
 export const productReviews = createTable(
 	"product_review",
@@ -213,7 +241,9 @@ export const productReviews = createTable(
 			.varchar({ length: 255 })
 			.notNull()
 			.references(() => users.id, { onDelete: "cascade" }),
-		orderId: d.varchar({ length: 255 }).references(() => orders.id, { onDelete: "set null" }),
+		orderId: d
+			.varchar({ length: 255 })
+			.references(() => orders.id, { onDelete: "set null" }),
 		rating: d.integer().notNull(), // 1-5
 		title: d.varchar({ length: 255 }),
 		comment: d.text(),
@@ -221,7 +251,10 @@ export const productReviews = createTable(
 		helpful: d.integer().notNull().default(0), // helpful votes
 		reported: d.boolean().notNull().default(false),
 		approved: d.boolean().notNull().default(true),
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
@@ -231,7 +264,7 @@ export const productReviews = createTable(
 		index("product_review_verified_idx").on(t.verified),
 		index("product_review_approved_idx").on(t.approved),
 	],
-)
+);
 
 // ============================================================================
 // CART & WISHLIST TABLES
@@ -254,7 +287,10 @@ export const cartItems = createTable(
 			.notNull()
 			.references(() => products.id, { onDelete: "cascade" }),
 		quantity: d.integer().notNull().default(1),
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
@@ -263,7 +299,7 @@ export const cartItems = createTable(
 		// Unique constraint to prevent duplicate cart items
 		index("cart_item_user_product_unique").on(t.userId, t.productId),
 	],
-)
+);
 
 export const wishlistItems = createTable(
 	"wishlist_item",
@@ -281,7 +317,10 @@ export const wishlistItems = createTable(
 			.varchar({ length: 255 })
 			.notNull()
 			.references(() => products.id, { onDelete: "cascade" }),
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 	}),
 	(t) => [
 		index("wishlist_item_user_idx").on(t.userId),
@@ -289,7 +328,7 @@ export const wishlistItems = createTable(
 		// Unique constraint to prevent duplicate wishlist items
 		index("wishlist_item_user_product_unique").on(t.userId, t.productId),
 	],
-)
+);
 
 // ============================================================================
 // ADDRESS TABLES
@@ -319,7 +358,10 @@ export const addresses = createTable(
 		postalCode: d.varchar({ length: 20 }).notNull(),
 		country: d.varchar({ length: 255 }).notNull().default("India"),
 		isDefault: d.boolean().notNull().default(false),
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
@@ -327,7 +369,7 @@ export const addresses = createTable(
 		index("address_type_idx").on(t.type),
 		index("address_default_idx").on(t.isDefault),
 	],
-)
+);
 
 // ============================================================================
 // ORDER TABLES
@@ -354,38 +396,44 @@ export const orders = createTable(
 		// Pricing
 		subtotal: d.numeric({ precision: 10, scale: 2 }).notNull(),
 		taxAmount: d.numeric({ precision: 10, scale: 2 }).notNull().default("0"),
-		shippingAmount: d.numeric({ precision: 10, scale: 2 }).notNull().default("0"),
-		discountAmount: d.numeric({ precision: 10, scale: 2 }).notNull().default("0"),
+		shippingAmount: d
+			.numeric({ precision: 10, scale: 2 })
+			.notNull()
+			.default("0"),
+		discountAmount: d
+			.numeric({ precision: 10, scale: 2 })
+			.notNull()
+			.default("0"),
 		totalAmount: d.numeric({ precision: 10, scale: 2 }).notNull(),
 
 		// Addresses (denormalized for historical record)
 		shippingAddress: d
 			.jsonb()
 			.$type<{
-				firstName: string
-				lastName: string
-				company?: string
-				phone?: string
-				addressLine1: string
-				addressLine2?: string
-				city: string
-				state: string
-				postalCode: string
-				country: string
+				firstName: string;
+				lastName: string;
+				company?: string;
+				phone?: string;
+				addressLine1: string;
+				addressLine2?: string;
+				city: string;
+				state: string;
+				postalCode: string;
+				country: string;
 			}>()
 			.notNull(),
 
 		billingAddress: d.jsonb().$type<{
-			firstName: string
-			lastName: string
-			company?: string
-			phone?: string
-			addressLine1: string
-			addressLine2?: string
-			city: string
-			state: string
-			postalCode: string
-			country: string
+			firstName: string;
+			lastName: string;
+			company?: string;
+			phone?: string;
+			addressLine1: string;
+			addressLine2?: string;
+			city: string;
+			state: string;
+			postalCode: string;
+			country: string;
 		}>(),
 
 		// Tracking
@@ -397,7 +445,10 @@ export const orders = createTable(
 		customerNotes: d.text(),
 		adminNotes: d.text(),
 
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
@@ -407,7 +458,7 @@ export const orders = createTable(
 		index("order_payment_status_idx").on(t.paymentStatus),
 		index("order_created_at_idx").on(t.createdAt),
 	],
-)
+);
 
 export const orderItems = createTable(
 	"order_item",
@@ -435,10 +486,16 @@ export const orderItems = createTable(
 		unitPrice: d.numeric({ precision: 10, scale: 2 }).notNull(),
 		totalPrice: d.numeric({ precision: 10, scale: 2 }).notNull(),
 
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 	}),
-	(t) => [index("order_item_order_idx").on(t.orderId), index("order_item_product_idx").on(t.productId)],
-)
+	(t) => [
+		index("order_item_order_idx").on(t.orderId),
+		index("order_item_product_idx").on(t.productId),
+	],
+);
 
 export const orderStatusHistory = createTable(
 	"order_status_history",
@@ -455,15 +512,20 @@ export const orderStatusHistory = createTable(
 		status: d.varchar({ length: 50 }).notNull(),
 		comment: d.text(),
 		notifyCustomer: d.boolean().notNull().default(false),
-		createdBy: d.varchar({ length: 255 }).references(() => users.id, { onDelete: "set null" }),
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdBy: d
+			.varchar({ length: 255 })
+			.references(() => users.id, { onDelete: "set null" }),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 	}),
 	(t) => [
 		index("order_status_history_order_idx").on(t.orderId),
 		index("order_status_history_status_idx").on(t.status),
 		index("order_status_history_created_at_idx").on(t.createdAt),
 	],
-)
+);
 
 // ============================================================================
 // COUPON & DISCOUNT TABLES
@@ -490,7 +552,10 @@ export const coupons = createTable(
 		active: d.boolean().notNull().default(true),
 		startsAt: d.timestamp({ withTimezone: true }),
 		expiresAt: d.timestamp({ withTimezone: true }),
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
@@ -498,7 +563,7 @@ export const coupons = createTable(
 		index("coupon_active_idx").on(t.active),
 		index("coupon_expires_at_idx").on(t.expiresAt),
 	],
-)
+);
 
 export const couponUsage = createTable(
 	"coupon_usage",
@@ -521,14 +586,17 @@ export const couponUsage = createTable(
 			.notNull()
 			.references(() => orders.id, { onDelete: "cascade" }),
 		discountAmount: d.numeric({ precision: 10, scale: 2 }).notNull(),
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 	}),
 	(t) => [
 		index("coupon_usage_coupon_idx").on(t.couponId),
 		index("coupon_usage_user_idx").on(t.userId),
 		index("coupon_usage_order_idx").on(t.orderId),
 	],
-)
+);
 
 // ============================================================================
 // NOTIFICATION TABLES
@@ -551,7 +619,10 @@ export const notifications = createTable(
 		message: d.text().notNull(),
 		data: d.jsonb().$type<Record<string, unknown>>(),
 		read: d.boolean().notNull().default(false),
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 	}),
 	(t) => [
 		index("notification_user_idx").on(t.userId),
@@ -559,7 +630,7 @@ export const notifications = createTable(
 		index("notification_read_idx").on(t.read),
 		index("notification_created_at_idx").on(t.createdAt),
 	],
-)
+);
 
 // ============================================================================
 // ANALYTICS TABLES
@@ -577,12 +648,17 @@ export const productViews = createTable(
 			.varchar({ length: 255 })
 			.notNull()
 			.references(() => products.id, { onDelete: "cascade" }),
-		userId: d.varchar({ length: 255 }).references(() => users.id, { onDelete: "set null" }),
+		userId: d
+			.varchar({ length: 255 })
+			.references(() => users.id, { onDelete: "set null" }),
 		sessionId: d.varchar({ length: 255 }),
 		ipAddress: d.varchar({ length: 45 }),
 		userAgent: d.text(),
 		referrer: d.varchar({ length: 500 }),
-		createdAt: d.timestamp({ withTimezone: true }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
 	}),
 	(t) => [
 		index("product_view_product_idx").on(t.productId),
@@ -590,7 +666,7 @@ export const productViews = createTable(
 		index("product_view_session_idx").on(t.sessionId),
 		index("product_view_created_at_idx").on(t.createdAt),
 	],
-)
+);
 
 // ============================================================================
 // RELATIONS
@@ -608,57 +684,75 @@ export const usersRelations = relations(users, ({ many }) => ({
 	notifications: many(notifications),
 	couponUsages: many(couponUsage),
 	productViews: many(productViews),
-}))
+}));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
 	user: one(users, { fields: [accounts.userId], references: [users.id] }),
-}))
+}));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
 	user: one(users, { fields: [sessions.userId], references: [users.id] }),
-}))
+}));
 
 // Category Relations
 export const categoriesRelations = relations(categories, ({ many }) => ({
 	products: many(products),
-}))
+}));
 
 // Product Relations
 export const productsRelations = relations(products, ({ one, many }) => ({
-	category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
+	category: one(categories, {
+		fields: [products.categoryId],
+		references: [categories.id],
+	}),
 	images: many(productImages),
 	reviews: many(productReviews),
 	cartItems: many(cartItems),
 	wishlistItems: many(wishlistItems),
 	orderItems: many(orderItems),
 	views: many(productViews),
-}))
+}));
 
 export const productImagesRelations = relations(productImages, ({ one }) => ({
-	product: one(products, { fields: [productImages.productId], references: [products.id] }),
-}))
+	product: one(products, {
+		fields: [productImages.productId],
+		references: [products.id],
+	}),
+}));
 
 export const productReviewsRelations = relations(productReviews, ({ one }) => ({
-	product: one(products, { fields: [productReviews.productId], references: [products.id] }),
+	product: one(products, {
+		fields: [productReviews.productId],
+		references: [products.id],
+	}),
 	user: one(users, { fields: [productReviews.userId], references: [users.id] }),
-	order: one(orders, { fields: [productReviews.orderId], references: [orders.id] }),
-}))
+	order: one(orders, {
+		fields: [productReviews.orderId],
+		references: [orders.id],
+	}),
+}));
 
 // Cart & Wishlist Relations
 export const cartItemsRelations = relations(cartItems, ({ one }) => ({
 	user: one(users, { fields: [cartItems.userId], references: [users.id] }),
-	product: one(products, { fields: [cartItems.productId], references: [products.id] }),
-}))
+	product: one(products, {
+		fields: [cartItems.productId],
+		references: [products.id],
+	}),
+}));
 
 export const wishlistItemsRelations = relations(wishlistItems, ({ one }) => ({
 	user: one(users, { fields: [wishlistItems.userId], references: [users.id] }),
-	product: one(products, { fields: [wishlistItems.productId], references: [products.id] }),
-}))
+	product: one(products, {
+		fields: [wishlistItems.productId],
+		references: [products.id],
+	}),
+}));
 
 // Address Relations
 export const addressesRelations = relations(addresses, ({ one }) => ({
 	user: one(users, { fields: [addresses.userId], references: [users.id] }),
-}))
+}));
 
 // Order Relations
 export const ordersRelations = relations(orders, ({ one, many }) => ({
@@ -667,85 +761,106 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
 	statusHistory: many(orderStatusHistory),
 	couponUsages: many(couponUsage),
 	reviews: many(productReviews),
-}))
+}));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
 	order: one(orders, { fields: [orderItems.orderId], references: [orders.id] }),
-	product: one(products, { fields: [orderItems.productId], references: [products.id] }),
-}))
+	product: one(products, {
+		fields: [orderItems.productId],
+		references: [products.id],
+	}),
+}));
 
-export const orderStatusHistoryRelations = relations(orderStatusHistory, ({ one }) => ({
-	order: one(orders, { fields: [orderStatusHistory.orderId], references: [orders.id] }),
-	createdBy: one(users, { fields: [orderStatusHistory.createdBy], references: [users.id] }),
-}))
+export const orderStatusHistoryRelations = relations(
+	orderStatusHistory,
+	({ one }) => ({
+		order: one(orders, {
+			fields: [orderStatusHistory.orderId],
+			references: [orders.id],
+		}),
+		createdBy: one(users, {
+			fields: [orderStatusHistory.createdBy],
+			references: [users.id],
+		}),
+	}),
+);
 
 // Coupon Relations
 export const couponsRelations = relations(coupons, ({ many }) => ({
 	usages: many(couponUsage),
-}))
+}));
 
 export const couponUsageRelations = relations(couponUsage, ({ one }) => ({
-	coupon: one(coupons, { fields: [couponUsage.couponId], references: [coupons.id] }),
+	coupon: one(coupons, {
+		fields: [couponUsage.couponId],
+		references: [coupons.id],
+	}),
 	user: one(users, { fields: [couponUsage.userId], references: [users.id] }),
-	order: one(orders, { fields: [couponUsage.orderId], references: [orders.id] }),
-}))
+	order: one(orders, {
+		fields: [couponUsage.orderId],
+		references: [orders.id],
+	}),
+}));
 
 // Notification Relations
 export const notificationsRelations = relations(notifications, ({ one }) => ({
 	user: one(users, { fields: [notifications.userId], references: [users.id] }),
-}))
+}));
 
 // Analytics Relations
 export const productViewsRelations = relations(productViews, ({ one }) => ({
-	product: one(products, { fields: [productViews.productId], references: [products.id] }),
+	product: one(products, {
+		fields: [productViews.productId],
+		references: [products.id],
+	}),
 	user: one(users, { fields: [productViews.userId], references: [users.id] }),
-}))
+}));
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
-export type User = typeof users.$inferSelect
-export type NewUser = typeof users.$inferInsert
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
 
-export type Category = typeof categories.$inferSelect
-export type NewCategory = typeof categories.$inferInsert
+export type Category = typeof categories.$inferSelect;
+export type NewCategory = typeof categories.$inferInsert;
 
-export type Product = typeof products.$inferSelect
-export type NewProduct = typeof products.$inferInsert
+export type Product = typeof products.$inferSelect;
+export type NewProduct = typeof products.$inferInsert;
 
-export type ProductImage = typeof productImages.$inferSelect
-export type NewProductImage = typeof productImages.$inferInsert
+export type ProductImage = typeof productImages.$inferSelect;
+export type NewProductImage = typeof productImages.$inferInsert;
 
-export type ProductReview = typeof productReviews.$inferSelect
-export type NewProductReview = typeof productReviews.$inferInsert
+export type ProductReview = typeof productReviews.$inferSelect;
+export type NewProductReview = typeof productReviews.$inferInsert;
 
-export type CartItem = typeof cartItems.$inferSelect
-export type NewCartItem = typeof cartItems.$inferInsert
+export type CartItem = typeof cartItems.$inferSelect;
+export type NewCartItem = typeof cartItems.$inferInsert;
 
-export type WishlistItem = typeof wishlistItems.$inferSelect
-export type NewWishlistItem = typeof wishlistItems.$inferInsert
+export type WishlistItem = typeof wishlistItems.$inferSelect;
+export type NewWishlistItem = typeof wishlistItems.$inferInsert;
 
-export type Address = typeof addresses.$inferSelect
-export type NewAddress = typeof addresses.$inferInsert
+export type Address = typeof addresses.$inferSelect;
+export type NewAddress = typeof addresses.$inferInsert;
 
-export type Order = typeof orders.$inferSelect
-export type NewOrder = typeof orders.$inferInsert
+export type Order = typeof orders.$inferSelect;
+export type NewOrder = typeof orders.$inferInsert;
 
-export type OrderItem = typeof orderItems.$inferSelect
-export type NewOrderItem = typeof orderItems.$inferInsert
+export type OrderItem = typeof orderItems.$inferSelect;
+export type NewOrderItem = typeof orderItems.$inferInsert;
 
-export type OrderStatusHistory = typeof orderStatusHistory.$inferSelect
-export type NewOrderStatusHistory = typeof orderStatusHistory.$inferInsert
+export type OrderStatusHistory = typeof orderStatusHistory.$inferSelect;
+export type NewOrderStatusHistory = typeof orderStatusHistory.$inferInsert;
 
-export type Coupon = typeof coupons.$inferSelect
-export type NewCoupon = typeof coupons.$inferInsert
+export type Coupon = typeof coupons.$inferSelect;
+export type NewCoupon = typeof coupons.$inferInsert;
 
-export type CouponUsage = typeof couponUsage.$inferSelect
-export type NewCouponUsage = typeof couponUsage.$inferInsert
+export type CouponUsage = typeof couponUsage.$inferSelect;
+export type NewCouponUsage = typeof couponUsage.$inferInsert;
 
-export type Notification = typeof notifications.$inferSelect
-export type NewNotification = typeof notifications.$inferInsert
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
 
-export type ProductView = typeof productViews.$inferSelect
-export type NewProductView = typeof productViews.$inferInsert
+export type ProductView = typeof productViews.$inferSelect;
+export type NewProductView = typeof productViews.$inferInsert;
