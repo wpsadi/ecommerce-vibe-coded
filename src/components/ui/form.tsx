@@ -9,24 +9,24 @@ import {
 	type FieldPath,
 	type FieldValues,
 	FormProvider,
+	type UseFormReturn,
 	useFormContext,
 	useFormState,
-	type UseFormReturn,
 } from "react-hook-form";
 
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 interface FormProps<TFieldValues extends FieldValues = FieldValues> {
-  form: UseFormReturn<TFieldValues>;
-  children: React.ReactNode;
+	form: UseFormReturn<TFieldValues>;
+	children: React.ReactNode;
 }
 
 const Form = <TFieldValues extends FieldValues = FieldValues>({
-  form,
-  children,
+	form,
+	children,
 }: FormProps<TFieldValues>) => {
-  return <FormProvider {...form}>{children}</FormProvider>;
+	return <FormProvider {...form}>{children}</FormProvider>;
 };
 
 type FormFieldContextValue<

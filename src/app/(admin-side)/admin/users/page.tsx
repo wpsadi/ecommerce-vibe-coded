@@ -27,10 +27,19 @@ import {
 import { useAuth } from "@/contexts/auth-context";
 import {
 	useAllUsers,
+	useDemoteFromAdmin,
 	usePromoteToAdmin,
 	useToggleUserBlock,
 } from "@/hooks/use-trpc-hooks";
-import { Crown, Eye, Search, UserCheck, UserX } from "lucide-react";
+import {
+	Crown,
+	Eye,
+	Search,
+	Shield,
+	UserCheck,
+	UserMinus,
+	UserX,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -44,11 +53,11 @@ export default function AdminUsersPage() {
 
 	// tRPC Hooks
 	const { data: allUsers, isPending } = useAllUsers({
-		role: "user",
 		search: searchQuery || undefined,
 	});
 	const toggleUserBlock = useToggleUserBlock();
 	const promoteToAdmin = usePromoteToAdmin();
+	const demoteFromAdmin = useDemoteFromAdmin();
 
 	// Use tRPC data or fallback to empty array
 	const users = allUsers || [];
@@ -81,6 +90,14 @@ export default function AdminUsersPage() {
 		}
 	};
 
+	const handleDemoteFromAdmin = async (userId: string) => {
+		try {
+			await demoteFromAdmin.mutateAsync({ userId });
+		} catch (error) {
+			toast.error("Failed to demote admin to user");
+		}
+	};
+
 	if (!user || user.role !== "admin") {
 		return null;
 	}
@@ -93,7 +110,9 @@ export default function AdminUsersPage() {
 				<div className="mb-8 flex items-center justify-between">
 					<h1 className="font-bold text-3xl">User Management</h1>
 					<div className="text-muted-foreground text-sm">
-						Total Users: {users.length}
+						Total Users: {users.length} | Admins:{" "}
+						{users.filter((u) => u.role === "admin").length} | Regular Users:{" "}
+						{users.filter((u) => u.role === "user").length}
 					</div>
 				</div>
 
@@ -118,7 +137,7 @@ export default function AdminUsersPage() {
 				{/* Users Table */}
 				<Card>
 					<CardHeader>
-						<CardTitle>Users ({users.length})</CardTitle>
+						<CardTitle>All Users ({users.length})</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="overflow-x-auto">
@@ -282,6 +301,58 @@ export default function AdminUsersPage() {
 																</AlertDialogContent>
 															</AlertDialog>
 														)}
+
+														{/* Demote from Admin Button - only show for admin users, not for self */}
+														{userData.role === "admin" &&
+															userData.id !== user?.id && (
+																<AlertDialog>
+																	<AlertDialogTrigger asChild>
+																		<Button
+																			variant="ghost"
+																			size="sm"
+																			className="text-orange-500 hover:text-orange-700"
+																			title="Demote to User"
+																		>
+																			<UserMinus className="h-4 w-4" />
+																		</Button>
+																	</AlertDialogTrigger>
+																	<AlertDialogContent>
+																		<AlertDialogHeader>
+																			<AlertDialogTitle>
+																				Demote from Admin
+																			</AlertDialogTitle>
+																			<AlertDialogDescription>
+																				Are you sure you want to demote{" "}
+																				{userData.name} from admin to regular
+																				user? This will remove all
+																				administrative privileges.
+																			</AlertDialogDescription>
+																		</AlertDialogHeader>
+																		<AlertDialogFooter>
+																			<AlertDialogCancel>
+																				Cancel
+																			</AlertDialogCancel>
+																			<AlertDialogAction
+																				onClick={() =>
+																					handleDemoteFromAdmin(userData.id)
+																				}
+																				className="bg-orange-500 hover:bg-orange-600"
+																			>
+																				Demote to User
+																			</AlertDialogAction>
+																		</AlertDialogFooter>
+																	</AlertDialogContent>
+																</AlertDialog>
+															)}
+
+														{/* Self indicator for current admin */}
+														{userData.role === "admin" &&
+															userData.id === user?.id && (
+																<div className="flex items-center text-muted-foreground text-xs">
+																	<Shield className="mr-1 h-3 w-3" />
+																	(You)
+																</div>
+															)}
 													</div>
 												</TableCell>
 											</TableRow>

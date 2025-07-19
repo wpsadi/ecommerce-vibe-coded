@@ -596,4 +596,52 @@ export const usersRouter = createTRPCRouter({
 				});
 			}
 		}),
+
+	// Admin: Demote admin to user
+	demoteFromAdmin: protectedProcedure
+		.input(z.object({ userId: z.string().min(1) }))
+		.mutation(async ({ input, ctx }) => {
+			// Check if user is admin
+			if (ctx.session.user.role !== "admin") {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Admin access required",
+				});
+			}
+
+			// Prevent admin from demoting themselves
+			if (input.userId === ctx.session.user.id) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Cannot demote yourself",
+				});
+			}
+
+			try {
+				const result = await ctx.db
+					.update(users)
+					.set({
+						role: "user",
+						updatedAt: new Date(),
+					})
+					.where(eq(users.id, input.userId))
+					.returning();
+
+				if (!result[0]) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "User not found",
+					});
+				}
+
+				return result[0];
+			} catch (error) {
+				if (error instanceof TRPCError) throw error;
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to demote admin to user",
+					cause: error,
+				});
+			}
+		}),
 });

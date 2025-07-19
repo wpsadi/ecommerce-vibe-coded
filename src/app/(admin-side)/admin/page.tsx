@@ -36,7 +36,7 @@ export default function AdminDashboard() {
 	// tRPC Hooks
 	const { data: products } = useProducts();
 	const { data: categories } = useCategories();
-	const { data: users } = useAllUsers({ role: "user" });
+	const { data: users } = useAllUsers({});
 	const { data: orderStats } = useOrderStatistics();
 	const { data: lowStockProducts } = useLowStockProducts(10);
 
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
 			title: "Total Users",
 			value: totalUsers,
 			icon: Users,
-			description: "Registered customers",
+			description: `${users?.filter((u) => u.role === "admin").length || 0} admins, ${users?.filter((u) => u.role === "user").length || 0} regular`,
 		},
 		{
 			title: "Total Products",
