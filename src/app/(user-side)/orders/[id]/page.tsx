@@ -219,7 +219,7 @@ export default function OrderDetailsPage() {
 								<div className="space-y-4">
 									{order.items.map((item) => (
 										<div
-											key={item.id}
+											key={item.productId || Math.random()}
 											className="flex items-center gap-4 rounded-lg border p-4"
 										>
 											<Image

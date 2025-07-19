@@ -144,11 +144,11 @@ export default function OrdersPage() {
 									{/* Order Items */}
 									<div className="flex items-center gap-4">
 										<div className="-space-x-2 flex">
-											{order.items.slice(0, 4).map((item) => (
+											{(order as any).items?.slice(0, 4).map((item: any) => (
 												<Image
 													key={item.id}
-													src={item.image || "/placeholder.svg"}
-													alt={item.name}
+													src={item.productImage || "/placeholder.svg"}
+													alt={item.productName}
 													width={40}
 													height={40}
 													className="rounded border-2 border-background"
@@ -157,13 +157,13 @@ export default function OrdersPage() {
 										</div>
 										<div>
 											<p className="font-medium">
-												{order.items.length} item
-												{order.items.length > 1 ? "s" : ""}
+												{(order as any).items?.length || 0} item
+												{((order as any).items?.length || 0) > 1 ? "s" : ""}
 											</p>
 											<p className="text-muted-foreground text-sm">
-												{order.items[0].name}
-												{order.items.length > 1 &&
-													` and ${order.items.length - 1} more`}
+												{(order as any).items?.[0]?.productName || "Product"}
+												{((order as any).items?.length || 0) > 1 &&
+													` and ${(order as any).items.length - 1} more`}
 											</p>
 										</div>
 									</div>
@@ -175,7 +175,7 @@ export default function OrdersPage() {
 												Total Amount
 											</p>
 											<p className="font-bold text-lg">
-												₹{order.total.toLocaleString()}
+												₹{Number(order.totalAmount).toLocaleString()}
 											</p>
 										</div>
 										<div className="text-right">
@@ -192,9 +192,12 @@ export default function OrdersPage() {
 									<div className="rounded-lg bg-muted p-3">
 										<p className="mb-1 font-medium text-sm">Delivery Address</p>
 										<p className="text-muted-foreground text-sm">
-											{order.address.name}, {order.address.street},{" "}
-											{order.address.city}, {order.address.state} -{" "}
-											{order.address.pincode}
+											{order.shippingAddress?.firstName}{" "}
+											{order.shippingAddress?.lastName},{" "}
+											{order.shippingAddress?.addressLine1},{" "}
+											{order.shippingAddress?.city},{" "}
+											{order.shippingAddress?.state} -{" "}
+											{order.shippingAddress?.postalCode}
 										</p>
 									</div>
 								</div>

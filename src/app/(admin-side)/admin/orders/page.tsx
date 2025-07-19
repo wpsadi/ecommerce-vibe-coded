@@ -38,12 +38,29 @@ export default function AdminOrdersPage() {
 	const router = useRouter();
 
 	const [searchQuery, setSearchQuery] = useState("");
-	const [statusFilter, setStatusFilter] = useState<string>("all");
+	const [statusFilter, setStatusFilter] = useState<
+		| "all"
+		| "pending"
+		| "confirmed"
+		| "shipped"
+		| "delivered"
+		| "cancelled"
+		| "refunded"
+	>("all");
 
 	// tRPC Hooks
 	const { data: allOrders, isPending } = useAllOrders({
 		search: searchQuery || undefined,
-		status: statusFilter !== "all" ? statusFilter : undefined,
+		status:
+			statusFilter !== "all"
+				? (statusFilter as
+						| "pending"
+						| "confirmed"
+						| "shipped"
+						| "delivered"
+						| "cancelled"
+						| "refunded")
+				: undefined,
 	});
 	const { data: orderStats } = useOrderStatistics();
 	const updateOrderStatus = useUpdateOrderStatus();
@@ -96,8 +113,8 @@ export default function AdminOrdersPage() {
 	};
 
 	const getUserEmail = (userId: string) => {
-		const foundUser = mockUsers.find((u) => u.id === userId);
-		return foundUser?.email || "Unknown";
+		// TODO: Implement proper user lookup
+		return `user-${userId.slice(0, 8)}@example.com`;
 	};
 
 	if (!user || user.role !== "admin") {
@@ -132,7 +149,12 @@ export default function AdminOrdersPage() {
 									className="pl-10"
 								/>
 							</div>
-							<Select value={statusFilter} onValueChange={setStatusFilter}>
+							<Select
+								value={statusFilter}
+								onValueChange={(value) =>
+									setStatusFilter(value as typeof statusFilter)
+								}
+							>
 								<SelectTrigger className="w-48">
 									<SelectValue placeholder="Filter by status" />
 								</SelectTrigger>
@@ -176,7 +198,8 @@ export default function AdminOrdersPage() {
 											<TableCell>
 												<div>
 													<div className="font-medium">
-														{order.address.name}
+														{order.shippingAddress?.firstName}{" "}
+														{order.shippingAddress?.lastName}
 													</div>
 													<div className="text-muted-foreground text-sm">
 														{getUserEmail(order.userId)}
@@ -189,8 +212,8 @@ export default function AdminOrdersPage() {
 														{order.items.slice(0, 3).map((item) => (
 															<Image
 																key={item.id}
-																src={item.image || "/placeholder.svg"}
-																alt={item.name}
+																src={item.productImage || "/placeholder.svg"}
+																alt={item.productName}
 																width={32}
 																height={32}
 																className="rounded border-2 border-background"
@@ -204,7 +227,7 @@ export default function AdminOrdersPage() {
 												</div>
 											</TableCell>
 											<TableCell className="font-medium">
-												₹{order.total.toLocaleString()}
+												₹{Number(order.totalAmount).toLocaleString()}
 											</TableCell>
 											<TableCell>
 												<Badge className={getStatusColor(order.status)}>

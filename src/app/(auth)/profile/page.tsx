@@ -15,6 +15,7 @@ import {
 	useUpdateAddress,
 	useUpdateProfile,
 } from "@/hooks/use-trpc-hooks";
+import type { NewAddress } from "@/server/db/schema";
 import { Calendar, Edit, Mail, Phone, Plus, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -78,7 +79,14 @@ export default function ProfilePage() {
 
 	const handleAddAddress = async (addressData: NewAddress) => {
 		try {
-			await createAddress.mutateAsync(addressData);
+			await createAddress.mutateAsync({
+				...addressData,
+				country: addressData.country || "India",
+				type: (addressData.type as "shipping" | "billing") || "shipping",
+				phone: addressData.phone || undefined,
+				company: addressData.company || undefined,
+				addressLine2: addressData.addressLine2 || undefined,
+			});
 		} catch (error) {
 			// Error handling is done in the hook
 		}

@@ -71,7 +71,6 @@ export default function CheckoutPage() {
 		shippingAddresses,
 		billingAddresses,
 		isReady,
-		isPending,
 	} = useCheckoutFlow();
 
 	const [selectedShippingAddress, setSelectedShippingAddress] = useState<
@@ -82,24 +81,26 @@ export default function CheckoutPage() {
 	>(null);
 	const [useSameAsShipping, setUseSameAsShipping] = useState(true);
 
-	const { control, handleSubmit, setValue, watch } = useForm({
+	const { control, handleSubmit, setValue, watch } = useForm<
+		z.infer<typeof checkoutSchema>
+	>({
 		resolver: zodResolver(checkoutSchema),
 		defaultValues: {
 			shippingAddressId: "",
 			billingAddressId: "",
 			useSameAsShipping: true,
-			paymentMethod: "cod",
+			paymentMethod: "cod" as const,
 		},
 	});
 
 	const paymentMethod = watch("paymentMethod");
 
 	useEffect(() => {
-		if (!isPending && !isReady) {
+		if (!createOrder.isPending && !isReady) {
 			toast.error("Your cart is empty. Redirecting to shopping page...");
 			router.replace("/products");
 		}
-	}, [isPending, isReady, router]);
+	}, [createOrder.isPending, isReady, router]);
 
 	useEffect(() => {
 		const defaultShipping =
@@ -139,10 +140,10 @@ export default function CheckoutPage() {
 
 		try {
 			await createOrder.mutateAsync({
-				items: cartItems.map((item) => ({
-					productId: item.product.id,
-					quantity: item.quantity,
-					unitPrice: item.product.price.toString(),
+				items: cartItems.map((item: any) => ({
+					productId: item.product?.id || "",
+					quantity: Number(item.quantity) || 1,
+					unitPrice: String(item.product?.price || 0),
 				})),
 				paymentMethod: data.paymentMethod,
 				shippingAddress: {
@@ -170,7 +171,7 @@ export default function CheckoutPage() {
 		}
 	};
 
-	if (isPending || !isReady) {
+	if (createOrder.isPending || !isReady) {
 		return <div>Loading checkout...</div>;
 	}
 
@@ -188,7 +189,7 @@ export default function CheckoutPage() {
 							title="Shipping Address"
 							addresses={shippingAddresses}
 							selectedAddress={selectedShippingAddress}
-							onSelectAddress={(id) => {
+							onSelectAddress={(id: string) => {
 								setSelectedShippingAddress(id);
 								setValue("shippingAddressId", id);
 							}}
@@ -218,9 +219,10 @@ export default function CheckoutPage() {
 								</div>
 								{!useSameAsShipping && (
 									<AddressSection
+										title="Billing Address"
 										addresses={billingAddresses}
 										selectedAddress={selectedBillingAddress}
-										onSelectAddress={(id) => {
+										onSelectAddress={(id: string) => {
 											setSelectedBillingAddress(id);
 											setValue("billingAddressId", id);
 										}}
@@ -274,19 +276,20 @@ export default function CheckoutPage() {
 							</CardHeader>
 							<CardContent className="space-y-4">
 								<div className="space-y-2">
-									{cartItems.map((item) => (
+									{cartItems.map((item: any) => (
 										<div
-											key={item.id}
+											key={item.id || Math.random()}
 											className="flex items-center justify-between text-sm"
 										>
 											<span className="line-clamp-1">
-												{item.product.name} x {item.quantity}
+												{item.product?.name || "Product"} x {item.quantity || 0}
 											</span>
 											<span className="font-medium">
 												₹
-												{(Number(item.product.price) * item.quantity).toFixed(
-													2,
-												)}
+												{(
+													Number(item.product?.price || 0) *
+													(item.quantity || 0)
+												).toFixed(2)}
 											</span>
 										</div>
 									))}
@@ -338,12 +341,18 @@ function AddressSection({
 	selectedAddress,
 	onSelectAddress,
 	type,
+}: {
+	title: string;
+	addresses: any[];
+	selectedAddress: string | null;
+	onSelectAddress: (id: string) => void;
+	type: string;
 }) {
 	return (
 		<Card>
 			<CardHeader className="flex flex-row items-center justify-between">
 				<CardTitle>{title}</CardTitle>
-				<AddressDialog type={type} />
+				<AddressDialog type={type} addressId={undefined} />
 			</CardHeader>
 			<CardContent>
 				<RadioGroup
@@ -377,7 +386,10 @@ function AddressSection({
 	);
 }
 
-function AddressDialog({ type, addressId }) {
+function AddressDialog({
+	type,
+	addressId,
+}: { type: string; addressId?: string }) {
 	const createAddress = useCreateAddress();
 	const updateAddress = useUpdateAddress();
 	const [open, setOpen] = useState(false);
@@ -390,7 +402,7 @@ function AddressDialog({ type, addressId }) {
 		resolver: zodResolver(addressSchema),
 	});
 
-	const onSubmit = async (data) => {
+	const onSubmit = async (data: any) => {
 		try {
 			if (addressId) {
 				await updateAddress.mutateAsync({ id: addressId, ...data });
@@ -466,7 +478,11 @@ function AddressDialog({ type, addressId }) {
 	);
 }
 
-function PaymentOption({ value, label, Icon }) {
+function PaymentOption({
+	value,
+	label,
+	Icon,
+}: { value: string; label: string; Icon: any }) {
 	return (
 		<Label
 			htmlFor={value}

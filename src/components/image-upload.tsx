@@ -39,6 +39,8 @@ export function ImageUpload({
 				for (let i = 0; i < files.length; i++) {
 					const file = files[i];
 
+					if (!file) continue;
+
 					// Validate file type
 					if (!file.type.startsWith("image/")) {
 						toast.error("Please upload only image files");
@@ -92,8 +94,10 @@ export function ImageUpload({
 	const moveImage = (fromIndex: number, toIndex: number) => {
 		const newImages = [...images];
 		const [movedImage] = newImages.splice(fromIndex, 1);
-		newImages.splice(toIndex, 0, movedImage);
-		onImagesChange(newImages);
+		if (movedImage) {
+			newImages.splice(toIndex, 0, movedImage);
+			onImagesChange(newImages);
+		}
 	};
 
 	return (

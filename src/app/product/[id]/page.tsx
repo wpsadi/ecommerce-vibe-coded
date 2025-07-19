@@ -4,6 +4,8 @@ import { Header } from "@/components/header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/auth-context";
 import {
@@ -33,9 +35,8 @@ export default function ProductPage() {
 	const [quantity, setQuantity] = useState(1);
 
 	const addToCart = useAddToCart();
-	const { toggle: toggleWishlist, isInWishlist } = useWishlistToggle(
-		product?.id || "",
-	);
+	const wishlistHook = useWishlistToggle(product?.id || "");
+	const { toggle: toggleWishlist, isInWishlist } = wishlistHook;
 	const { user } = useAuth();
 
 	if (isPending) {
@@ -102,10 +103,10 @@ export default function ProductPage() {
 
 	const discountPercentage = product.originalPrice
 		? Math.round(
-			((Number(product.originalPrice) - Number(product.price)) /
-				Number(product.originalPrice)) *
-			100,
-		)
+				((Number(product.originalPrice) - Number(product.price)) /
+					Number(product.originalPrice)) *
+					100,
+			)
 		: 0;
 
 	return (
@@ -132,10 +133,11 @@ export default function ProductPage() {
 								<button
 									type="button"
 									key={image.id}
-									className={`h-20 w-20 flex-shrink-0 overflow-hidden rounded border ${selectedImageIndex === i
+									className={`h-20 w-20 flex-shrink-0 overflow-hidden rounded border ${
+										selectedImageIndex === i
 											? "border-primary ring-2 ring-primary"
 											: "border-border"
-										}`}
+									}`}
 									onClick={() => setSelectedImageIndex(i)}
 								>
 									<Image
@@ -160,11 +162,16 @@ export default function ProductPage() {
 								<div className="flex items-center">
 									<Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
 									<span className="ml-1 font-medium">
-										{reviews?.averageRating || 0}
+										{reviews && reviews.length > 0
+											? (
+													reviews.reduce((sum, r) => sum + r.rating, 0) /
+													reviews.length
+												).toFixed(1)
+											: 0}
 									</span>
 								</div>
 								<span className="text-muted-foreground">
-									({reviews?.totalReviews || 0} reviews)
+									({reviews?.length || 0} reviews)
 								</span>
 							</div>
 						</div>
@@ -243,11 +250,7 @@ export default function ProductPage() {
 								<ShoppingCart className="mr-2 h-4 w-4" />
 								{addToCart.isPending ? "Adding..." : "Add to Cart"}
 							</Button>
-							<Button
-								variant="outline"
-								onClick={handleWishlistToggle}
-								disabled={toggleWishlist.isPending}
-							>
+							<Button variant="outline" onClick={handleWishlistToggle}>
 								<Heart
 									className={`h-4 w-4 ${isInWishlist ? "fill-red-500 text-red-500" : ""}`}
 								/>

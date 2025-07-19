@@ -21,17 +21,25 @@ import { useCategories, useCreateProduct } from "@/hooks/use-trpc-hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import {
+	Controller,
+	type ControllerRenderProps,
+	useForm,
+} from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 const productSchema = z.object({
 	name: z.string().min(1, "Name is required"),
+	slug: z.string().min(1, "Slug is required"),
 	description: z.string().min(1, "Description is required"),
 	price: z.string().min(1, "Price is required"),
 	originalPrice: z.string().optional(),
 	categoryId: z.string().min(1, "Category is required"),
-	stock: z.string().min(1, "Stock is required"),
+	stock: z
+		.string()
+		.min(1, "Stock is required")
+		.transform((val) => Number.parseInt(val)),
 	specifications: z.record(z.string()).optional(),
 	images: z.array(z.string()).optional(),
 });
@@ -45,6 +53,7 @@ export default function AddProductPage() {
 		handleSubmit,
 		setValue,
 		watch,
+		control,
 		formState: { errors },
 	} = useForm({
 		resolver: zodResolver(productSchema),
@@ -127,11 +136,26 @@ export default function AddProductPage() {
 									</div>
 
 									<div>
+										<Label htmlFor="slug">Product Slug *</Label>
+										<Input
+											id="slug"
+											{...register("slug")}
+											required
+											placeholder="Enter product slug (URL-friendly)"
+										/>
+										{errors.slug && (
+											<p className="text-red-500 text-xs">
+												{errors.slug.message}
+											</p>
+										)}
+									</div>
+
+									<div>
 										<Label htmlFor="category">Category *</Label>
 										<Controller
 											name="categoryId"
 											control={control}
-											render={({ field }: { field: ControllerRenderProps<typeof productSchema, "categoryId"> }) => (
+											render={({ field }) => (
 												<Select
 													onValueChange={field.onChange}
 													defaultValue={field.value}
@@ -254,13 +278,14 @@ export default function AddProductPage() {
 										</div>
 
 										{watch("specifications") &&
-											Object.entries(watch("specifications")).length > 0 && (
+											Object.entries(watch("specifications") || {}).length >
+												0 && (
 												<div className="rounded-lg border p-4">
 													<h4 className="mb-2 font-medium">
 														Added Specifications:
 													</h4>
 													<div className="space-y-2">
-														{Object.entries(watch("specifications")).map(
+														{Object.entries(watch("specifications") || {}).map(
 															([key, value]) => (
 																<div
 																	key={key}

@@ -261,7 +261,7 @@ export default function ProductsPage() {
 								{products.map((product) => (
 									<ProductCard
 										key={product.id}
-										product={product}
+										product={product as any}
 										viewMode={viewMode}
 									/>
 								))}
@@ -336,11 +336,13 @@ function ProductCard({
 
 	const discountPercentage = product.originalPrice
 		? Math.round(
-			((Number(product.originalPrice) - Number(product.price)) /
-				Number(product.originalPrice)) *
-			100,
-		)
+				((Number(product.originalPrice) - Number(product.price)) /
+					Number(product.originalPrice)) *
+					100,
+			)
 		: 0;
+
+	const primaryImage = (product as any).images?.[0]?.url;
 
 	if (viewMode === "list") {
 		return (

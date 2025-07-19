@@ -188,9 +188,9 @@ export default function CartPage() {
 				<div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
 					{/* Cart Items */}
 					<div className="space-y-4 lg:col-span-2">
-						{cartItems.map((item) => (
+						{cartItems.map((item: any) => (
 							<CartItem
-								key={item.id}
+								key={item.id || Math.random()}
 								item={item}
 								onQuantityChange={handleQuantityChange}
 								onRemove={handleRemoveItem}
@@ -365,16 +365,16 @@ function CartItem({
 }) {
 	const discountPercentage = item.product.originalPrice
 		? Math.round(
-			((Number(item.product.originalPrice) - Number(item.product.price)) /
-				Number(item.product.originalPrice)) *
-			100,
-		)
+				((Number(item.product.originalPrice) - Number(item.product.price)) /
+					Number(item.product.originalPrice)) *
+					100,
+			)
 		: 0;
 
 	const itemTotal = Number(item.product.price) * item.quantity;
 	const itemSavings = item.product.originalPrice
 		? (Number(item.product.originalPrice) - Number(item.product.price)) *
-		item.quantity
+			item.quantity
 		: 0;
 
 	return (
