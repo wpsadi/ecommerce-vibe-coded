@@ -16,7 +16,7 @@ export const useProducts = (filters?: {
 	limit?: number;
 	offset?: number;
 }) => {
-	return api.products.getAll.useQuery(filters, {
+	return api.products.getAll.useQuery(filters ?? {}, {
 		staleTime: 5 * 60 * 1000, // 5 minutes
 	});
 };
