@@ -556,4 +556,44 @@ export const usersRouter = createTRPCRouter({
 				});
 			}
 		}),
+
+	// Admin: Promote user to admin
+	promoteToAdmin: protectedProcedure
+		.input(z.object({ userId: z.string().min(1) }))
+		.mutation(async ({ input, ctx }) => {
+			// Check if user is admin
+			if (ctx.session.user.role !== "admin") {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Admin access required",
+				});
+			}
+
+			try {
+				const result = await ctx.db
+					.update(users)
+					.set({
+						role: "admin",
+						updatedAt: new Date(),
+					})
+					.where(eq(users.id, input.userId))
+					.returning();
+
+				if (!result[0]) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "User not found",
+					});
+				}
+
+				return result[0];
+			} catch (error) {
+				if (error instanceof TRPCError) throw error;
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to promote user to admin",
+					cause: error,
+				});
+			}
+		}),
 });

@@ -16,7 +16,7 @@ export const useProducts = (filters?: {
 	limit?: number;
 	offset?: number;
 }) => {
-	return api.products.getAll.useQuery(filters, {
+	return api.products.getAll.useQuery(filters ?? {}, {
 		staleTime: 5 * 60 * 1000, // 5 minutes
 	});
 };
@@ -790,6 +790,20 @@ export const useToggleUserBlock = () => {
 		},
 		onError: (error) => {
 			toast.error(error.message || "Failed to update user status");
+		},
+	});
+};
+
+export const usePromoteToAdmin = () => {
+	const utils = api.useUtils();
+	return api.users.promoteToAdmin.useMutation({
+		onSuccess: () => {
+			utils.users.getAllUsers.invalidate();
+			utils.users.getById.invalidate();
+			toast.success("User promoted to admin successfully!");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to promote user to admin");
 		},
 	});
 };

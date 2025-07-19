@@ -90,19 +90,49 @@ export const authConfig = {
 		sessionsTable: sessions,
 		verificationTokensTable: verificationTokens,
 	}),
+	session: {
+		strategy: "jwt" as const,
+	},
+	pages: {
+		signIn: "/login",
+		signUp: "/signup",
+	},
 	callbacks: {
-		session: ({ session, user }) => {
-				console.log("NextAuth Session Callback - Session:", session);
-				console.log("NextAuth Session Callback - User:", user);
+		session: ({ session, user, token }) => {
+			console.log("NextAuth Session Callback - Session:", session);
+			console.log("NextAuth Session Callback - User:", user);
+			console.log("NextAuth Session Callback - Token:", token);
+			
+			// For credentials provider, user info comes from token
+			if (token) {
 				return {
-			...session,
-			user: {
-				...session.user,
-				id: user.id,
-				role: user.role,
-			},
-		}},
+					...session,
+					user: {
+						...session.user,
+						id: token.sub || "",
+						role: (token.role as string) || "user",
+					},
+				};
+			}
+			
+			// For database adapter (OAuth), user info comes from user parameter
+			if (user) {
+				return {
+					...session,
+					user: {
+						...session.user,
+						id: user.id,
+						role: user.role,
+					},
+				};
+			}
+			
+			return session;
+		},
 		jwt: ({ token, user }) => {
+			console.log("NextAuth JWT Callback - Token:", token);
+			console.log("NextAuth JWT Callback - User:", user);
+			
 			if (user) {
 				token.role = user.role;
 			}

@@ -64,8 +64,8 @@ export default function SearchPage() {
 			// Price filter
 			filtered = filtered.filter(
 				(product) =>
-					Number(product?.price || 0) >= priceRange[0] &&
-					Number(product?.price || 0) <= priceRange[1],
+					Number(product?.price || 0) >= (priceRange?.[0] ?? 0) &&
+					Number(product?.price || 0) <= (priceRange?.[1] ?? 10000),
 			);
 
 			// Sort
@@ -234,8 +234,8 @@ export default function SearchPage() {
 											className="w-full"
 										/>
 										<div className="flex items-center justify-between text-muted-foreground text-sm">
-											<span>₹{priceRange[0].toLocaleString()}</span>
-											<span>₹{priceRange[1].toLocaleString()}</span>
+											<span>₹{(priceRange?.[0] ?? 0).toLocaleString()}</span>
+											<span>₹{(priceRange?.[1] ?? 10000).toLocaleString()}</span>
 										</div>
 									</div>
 								</div>

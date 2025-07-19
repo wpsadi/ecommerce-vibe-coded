@@ -77,7 +77,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
 	const discountPercentage = product.originalPrice
 		? Math.round(
-				((product.originalPrice - product.price) / product.originalPrice) * 100,
+				((Number(product.originalPrice) - Number(product.price)) / Number(product.originalPrice)) * 100,
 			)
 		: 0;
 
@@ -88,7 +88,7 @@ export function ProductCard({ product }: ProductCardProps) {
 					<Link href={`/product/${product.id}`}>
 						<div className="aspect-square overflow-hidden">
 							<Image
-								src={product.image || "/placeholder.svg"}
+								src={product.primaryImage || "/placeholder.svg"}
 								alt={product.name}
 								width={300}
 								height={300}
@@ -110,7 +110,7 @@ export function ProductCard({ product }: ProductCardProps) {
 						onClick={handleWishlistToggle}
 					>
 						<Heart
-							className={`h-4 w-4 ${isInWishlist(product.id) ? "fill-red-500 text-red-500" : ""}`}
+							className={`h-4 w-4 ${isInWishlist?.isInWishlist ? "fill-red-500 text-red-500" : ""}`}
 						/>
 					</Button>
 				</div>
@@ -125,10 +125,10 @@ export function ProductCard({ product }: ProductCardProps) {
 					<div className="mb-2 flex items-center gap-1">
 						<div className="flex items-center">
 							<Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-							<span className="ml-1 text-xs">{product.rating}</span>
+							<span className="ml-1 text-xs">{product.averageRating || 0}</span>
 						</div>
 						<span className="text-muted-foreground text-xs">
-							({product.reviews.toLocaleString()})
+							({product.reviewCount?.toLocaleString() || 0})
 						</span>
 					</div>
 

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import type React from "react";
 import "@/styles/globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -10,8 +9,6 @@ import { TRPCReactProvider } from "@/trpc/react";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/server/auth";
 import { Toaster } from "sonner";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
 	title: "Ecommerce MVP",
@@ -27,7 +24,7 @@ export default async function RootLayout({
 	const session = await auth();
 	return (
 		<html lang="en" suppressHydrationWarning>
-			<body className={inter.className}>
+			<body className="font-sans antialiased">
 				<TRPCReactProvider>
 					<ThemeProvider
 						attribute="class"
