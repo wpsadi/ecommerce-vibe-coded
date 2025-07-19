@@ -95,15 +95,14 @@ export const authConfig = {
 	},
 	pages: {
 		signIn: "/login",
-		signUp: "/signup",
 	},
 	callbacks: {
-					session: ({ session, user }) => ({
+		session: ({ session, token }) => ({
 			...session,
 			user: {
 				...session.user,
-				id: user.id,
-				role: user.role,
+				id: token.sub!,
+				role: token.role as string,
 			},
 		}),
 		jwt: ({ token, user }) => {
