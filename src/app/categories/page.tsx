@@ -15,8 +15,8 @@ import { useState } from "react";
 type Category = {
 	id: string;
 	name: string;
-	description?: string;
-	icon?: string;
+	description?: string | null;
+	icon?: string | null;
 	slug: string;
 	parentId?: string | null;
 	productCount: number;
@@ -37,9 +37,8 @@ export default function CategoriesPage() {
 				category.description?.toLowerCase().includes(searchTerm.toLowerCase()),
 		) || [];
 
-	const parentCategories = filteredCategories.filter((cat) => !cat.parentId);
-	const getSubcategories = (parentId: string) =>
-		filteredCategories.filter((cat) => cat.parentId === parentId);
+	const parentCategories = filteredCategories;
+	const getSubcategories = (parentId: string) => [];  // No subcategories in current schema
 
 	if (error) {
 		return (

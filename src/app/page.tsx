@@ -102,7 +102,10 @@ export default function HomePage() {
 									<ProductSkeleton key={`product-skeleton-${i}`} />
 								))
 								: featuredProducts?.map((product) => (
-									<ProductCard key={product.id} product={product} />
+									<ProductCard key={product.id} product={{
+										...product,
+										originalPrice: product.originalPrice || undefined
+									}} />
 								))}
 						</div>
 					</div>

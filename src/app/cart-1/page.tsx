@@ -188,9 +188,9 @@ export default function CartPage() {
 				<div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
 					{/* Cart Items */}
 					<div className="space-y-4 lg:col-span-2">
-						{cartItems.map((item) => (
+						{cartItems.map((item: any) => (
 							<CartItem
-								key={item.id}
+								key={item.id || Math.random()}
 								item={item}
 								onQuantityChange={handleQuantityChange}
 								onRemove={handleRemoveItem}
