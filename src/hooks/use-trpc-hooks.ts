@@ -794,6 +794,20 @@ export const useToggleUserBlock = () => {
 	});
 };
 
+export const usePromoteToAdmin = () => {
+	const utils = api.useUtils();
+	return api.users.promoteToAdmin.useMutation({
+		onSuccess: () => {
+			utils.users.getAllUsers.invalidate();
+			utils.users.getById.invalidate();
+			toast.success("User promoted to admin successfully!");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to promote user to admin");
+		},
+	});
+};
+
 // =============================================================================
 // COUPON HOOKS
 // =============================================================================

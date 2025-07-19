@@ -2,16 +2,20 @@ import { relations, sql } from "drizzle-orm";
 import {
 	index,
 	numeric,
-	pgTableCreator,
+	sqliteTableCreator,
 	primaryKey,
-} from "drizzle-orm/pg-core";
+	integer,
+	text,
+	blob,
+	real,
+} from "drizzle-orm/sqlite-core";
 import type { AdapterAccount } from "next-auth/adapters";
 
 /**
  * Multi-project schema for e-commerce platform
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = pgTableCreator((name) => `ecommerce_${name}`);
+export const createTable = sqliteTableCreator((name) => `ecommerce_${name}`);
 
 // ============================================================================
 // AUTH TABLES (NextAuth.js integration)
@@ -19,82 +23,72 @@ export const createTable = pgTableCreator((name) => `ecommerce_${name}`);
 
 export const users = createTable(
 	"user",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		name: d.varchar({ length: 255 }),
-		email: d.varchar({ length: 255 }).notNull().unique(),
-		emailVerified: d
-			.timestamp({
-				mode: "date",
-				withTimezone: true,
-			})
-			.default(sql`CURRENT_TIMESTAMP`),
-		image: d.varchar({ length: 255 }),
-		password: d.varchar({ length: 255 }),
-		phone: d.varchar({ length: 20 }),
-		role: d.varchar({ length: 50 }).notNull().default("user"), // user, admin
-		blocked: d.boolean().notNull().default(false),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		name: text("name"),
+		email: text("email").notNull().unique(),
+		emailVerified: integer("emailVerified", { mode: "timestamp" }),
+		image: text("image"),
+		password: text("password"),
+		phone: text("phone"),
+		role: text("role").notNull().default("user"), // user, admin
+		blocked: integer("blocked", { mode: "boolean" }).notNull().default(false),
+		createdAt: integer("createdAt", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+		updatedAt: integer("updatedAt", { mode: "timestamp" }).$onUpdateFn(() => new Date()),
+	},
+	(t) => ({
+		emailIdx: index("user_email_idx").on(t.email),
+		roleIdx: index("user_role_idx").on(t.role),
 	}),
-	(t) => [
-		index("user_email_idx").on(t.email),
-		index("user_role_idx").on(t.role),
-	],
 );
 
 export const accounts = createTable(
 	"account",
-	(d) => ({
-		userId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		type: d.varchar({ length: 255 }).$type<AdapterAccount["type"]>().notNull(),
-		provider: d.varchar({ length: 255 }).notNull(),
-		providerAccountId: d.varchar({ length: 255 }).notNull(),
-		refresh_token: d.text(),
-		access_token: d.text(),
-		expires_at: d.integer(),
-		token_type: d.varchar({ length: 255 }),
-		scope: d.varchar({ length: 255 }),
-		id_token: d.text(),
-		session_state: d.varchar({ length: 255 }),
+	{
+		userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+		type: text("type").$type<AdapterAccount["type"]>().notNull(),
+		provider: text("provider").notNull(),
+		providerAccountId: text("providerAccountId").notNull(),
+		refresh_token: text("refresh_token"),
+		access_token: text("access_token"),
+		expires_at: integer("expires_at"),
+		token_type: text("token_type"),
+		scope: text("scope"),
+		id_token: text("id_token"),
+		session_state: text("session_state"),
+	},
+	(t) => ({
+		compoundKey: primaryKey({
+			columns: [t.provider, t.providerAccountId],
+		}),
+		userIdIdx: index("account_user_id_idx").on(t.userId),
 	}),
-	(t) => [
-		primaryKey({ columns: [t.provider, t.providerAccountId] }),
-		index("account_user_id_idx").on(t.userId),
-	],
 );
 
 export const sessions = createTable(
 	"session",
-	(d) => ({
-		sessionToken: d.varchar({ length: 255 }).notNull().primaryKey(),
-		userId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
+	{
+		sessionToken: text("sessionToken").notNull().primaryKey(),
+		userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+		expires: integer("expires", { mode: "timestamp" }).notNull(),
+	},
+	(t) => ({
+		userIdIdx: index("session_user_id_idx").on(t.userId),
 	}),
-	(t) => [index("session_user_id_idx").on(t.userId)],
 );
 
 export const verificationTokens = createTable(
 	"verification_token",
-	(d) => ({
-		identifier: d.varchar({ length: 255 }).notNull(),
-		token: d.varchar({ length: 255 }).notNull(),
-		expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
+	{
+		identifier: text("identifier").notNull(),
+		token: text("token").notNull(),
+		expires: integer("expires", { mode: "timestamp" }).notNull(),
+	},
+	(t) => ({
+		compoundKey: primaryKey({
+			columns: [t.identifier, t.token],
+		}),
 	}),
-	(t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
 
 // ============================================================================

@@ -25,8 +25,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useAuth } from "@/contexts/auth-context";
-import { useAllUsers, useToggleUserBlock } from "@/hooks/use-trpc-hooks";
-import { Eye, Search, UserCheck, UserX } from "lucide-react";
+import { useAllUsers, useToggleUserBlock, usePromoteToAdmin } from "@/hooks/use-trpc-hooks";
+import { Eye, Search, UserCheck, UserX, Crown } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -44,6 +44,7 @@ export default function AdminUsersPage() {
 		search: searchQuery || undefined,
 	});
 	const toggleUserBlock = useToggleUserBlock();
+	const promoteToAdmin = usePromoteToAdmin();
 
 	// Use tRPC data or fallback to empty array
 	const users = allUsers || [];
@@ -65,6 +66,14 @@ export default function AdminUsersPage() {
 			});
 		} catch (error) {
 			toast.error("Failed to update user status");
+		}
+	};
+
+	const handlePromoteToAdmin = async (userId: string) => {
+		try {
+			await promoteToAdmin.mutateAsync({ userId });
+		} catch (error) {
+			toast.error("Failed to promote user to admin");
 		}
 	};
 
@@ -115,6 +124,7 @@ export default function AdminUsersPage() {
 										<TableHead>Name</TableHead>
 										<TableHead>Email</TableHead>
 										<TableHead>Phone</TableHead>
+										<TableHead>Role</TableHead>
 										<TableHead>Joined</TableHead>
 										<TableHead>Status</TableHead>
 										<TableHead>Actions</TableHead>
@@ -123,13 +133,13 @@ export default function AdminUsersPage() {
 								<TableBody>
 									{isPending ? (
 										<TableRow>
-											<TableCell colSpan={5} className="py-8 text-center">
+											<TableCell colSpan={7} className="py-8 text-center">
 												Loading users...
 											</TableCell>
 										</TableRow>
 									) : users.length === 0 ? (
 										<TableRow>
-											<TableCell colSpan={5} className="py-8 text-center">
+											<TableCell colSpan={7} className="py-8 text-center">
 												{searchQuery
 													? "No users found matching your search"
 													: "No users found"}
@@ -143,6 +153,11 @@ export default function AdminUsersPage() {
 												</TableCell>
 												<TableCell>{userData.email}</TableCell>
 												<TableCell>{userData.phone || "N/A"}</TableCell>
+												<TableCell>
+													<Badge variant={userData.role === "admin" ? "secondary" : "outline"}>
+														{userData.role === "admin" ? "Admin" : "User"}
+													</Badge>
+												</TableCell>
 												<TableCell>
 													{new Date(userData.createdAt).toLocaleDateString()}
 												</TableCell>
@@ -216,6 +231,40 @@ export default function AdminUsersPage() {
 																</AlertDialogFooter>
 															</AlertDialogContent>
 														</AlertDialog>
+
+														{/* Promote to Admin Button - only show for non-admin users */}
+														{userData.role !== "admin" && (
+															<AlertDialog>
+																<AlertDialogTrigger asChild>
+																	<Button
+																		variant="ghost"
+																		size="sm"
+																		className="text-blue-500 hover:text-blue-700"
+																		title="Promote to Admin"
+																	>
+																		<Crown className="h-4 w-4" />
+																	</Button>
+																</AlertDialogTrigger>
+																<AlertDialogContent>
+																	<AlertDialogHeader>
+																		<AlertDialogTitle>Promote to Admin</AlertDialogTitle>
+																		<AlertDialogDescription>
+																			Are you sure you want to promote {userData.name} to admin?
+																			This will give them full administrative privileges.
+																		</AlertDialogDescription>
+																	</AlertDialogHeader>
+																	<AlertDialogFooter>
+																		<AlertDialogCancel>Cancel</AlertDialogCancel>
+																		<AlertDialogAction
+																			onClick={() => handlePromoteToAdmin(userData.id)}
+																			className="bg-blue-500 hover:bg-blue-600"
+																		>
+																			Promote to Admin
+																		</AlertDialogAction>
+																	</AlertDialogFooter>
+																</AlertDialogContent>
+															</AlertDialog>
+														)}
 													</div>
 												</TableCell>
 											</TableRow>
