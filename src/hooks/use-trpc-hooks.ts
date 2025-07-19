@@ -795,6 +795,20 @@ export const usePromoteToAdmin = () => {
 	});
 };
 
+export const useDemoteFromAdmin = () => {
+	const utils = api.useUtils();
+	return api.users.demoteFromAdmin.useMutation({
+		onSuccess: () => {
+			utils.users.getAllUsers.invalidate();
+			utils.users.getById.invalidate();
+			toast.success("Admin demoted to user successfully!");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to demote admin to user");
+		},
+	});
+};
+
 // =============================================================================
 // COUPON HOOKS
 // =============================================================================

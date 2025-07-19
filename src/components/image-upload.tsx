@@ -73,6 +73,16 @@ export function ImageUpload({
 
 					if (!uploadResponse.ok) {
 						const errorData = await uploadResponse.json();
+						if (
+							uploadResponse.status === 500 &&
+							errorData.error?.includes("Vercel Blob is not configured")
+						) {
+							// For development/demo purposes, use a placeholder URL when Vercel Blob is not configured
+							console.warn("Vercel Blob not configured, using placeholder URL");
+							const placeholderUrl = `https://via.placeholder.com/400x400/f0f0f0/666666?text=${encodeURIComponent(file.name)}`;
+							newImages.push(placeholderUrl);
+							continue;
+						}
 						throw new Error(errorData.error || "Upload failed");
 					}
 
@@ -165,10 +175,17 @@ export function ImageUpload({
 							<CardContent className="p-2">
 								<div className="relative aspect-square overflow-hidden rounded">
 									<Image
-										src={image || "/placeholder.svg"}
+										src={image?.startsWith("http") ? image : "/placeholder.svg"}
 										alt={`Product image ${index + 1}`}
 										fill
 										className="object-cover"
+										onError={(e) => {
+											// Fallback to placeholder if image fails to load
+											const img = e.target as HTMLImageElement;
+											if (img.src !== "/placeholder.svg") {
+												img.src = "/placeholder.svg";
+											}
+										}}
 									/>
 
 									{/* Primary badge */}
