@@ -8,6 +8,7 @@ import { CartProvider } from "@/contexts/cart-context";
 import { WishlistProvider } from "@/contexts/wishlist-context";
 import { TRPCReactProvider } from "@/trpc/react";
 import { SessionProvider } from "next-auth/react";
+import { auth } from "@/server/auth";
 import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -17,11 +18,13 @@ export const metadata: Metadata = {
 	description: "E-commerce platform with user and admin features",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
+	
 }: {
 	children: React.ReactNode;
 }) {
+	const session = await auth();
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body className={inter.className}>
@@ -33,7 +36,7 @@ export default function RootLayout({
 						disableTransitionOnChange={false}
 						storageKey="ecommerce-theme"
 					>
-						<SessionProvider>
+						<SessionProvider session={session}>
 							<AuthProvider>
 								<CartProvider>
 									<WishlistProvider>

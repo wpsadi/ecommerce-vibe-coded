@@ -47,8 +47,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				toast.error(result.error);
 				return false;
 			}
+
+			// If we reach here, signIn was successful.
+			// Now attempt to update the session.
 			toast.success("Welcome back!");
-			return true;
+				await update(); // Force session update
+				return true;
 		} catch (error) {
 			console.error("Login error:", error);
 			toast.error("An unexpected error occurred during login.");
@@ -64,13 +68,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	): Promise<boolean> => {
 		try {
 			await signupMutation.mutateAsync({ name, email, password, phone });
+
+			const result = await signIn("credentials", {
+				email,
+				password,
+				redirect: false,
+			});
+
+			if (result?.error) {
+				toast.error(result.error);
+				return false;
+			}
+
 			toast.success("Your account has been created successfully!");
 			return true;
-		} catch (error: unknown) {
+		} catch (error) {
 			console.error("Signup error:", error);
-			toast.error(
-				error.message || "An unexpected error occurred during signup.",
-			);
+			toast.error("An unexpected error occurred during signup.");
 			return false;
 		}
 	};

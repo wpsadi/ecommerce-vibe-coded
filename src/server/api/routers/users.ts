@@ -68,7 +68,7 @@ export const usersRouter = createTRPCRouter({
 						name,
 						email,
 						password: hashedPassword,
-						phone,
+						phone: phone === "" ? null : phone,
 						role: "user", // Default role
 					})
 					.returning();

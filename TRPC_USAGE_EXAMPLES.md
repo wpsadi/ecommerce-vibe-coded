@@ -15,7 +15,7 @@ import { api } from "@/trpc/react"
 ### Get All Products
 ```typescript
 function ProductsList() {
-  const { data: products, isLoading, error } = api.products.getAll.useQuery({
+  const { data: products, isPending, error } = api.products.getAll.useQuery({
     categoryId: "electronics", // Optional
     featured: true, // Optional
     search: "iPhone", // Optional
@@ -25,7 +25,7 @@ function ProductsList() {
     offset: 0, // Optional
   })
 
-  if (isLoading) return <div>Loading...</div>
+  if (isPending) return <div>Loading...</div>
   if (error) return <div>Error: {error.message}</div>
 
   return (
@@ -45,7 +45,7 @@ function ProductsList() {
 ### Get Product by Slug
 ```typescript
 function ProductDetail({ slug }: { slug: string }) {
-  const { data: product, isLoading } = api.products.getBySlug.useQuery({ slug })
+  const { data: product, isPending } = api.products.getBySlug.useQuery({ slug })
   const { data: images } = api.products.getImages.useQuery(
     { productId: product?.id ?? "" },
     { enabled: !!product?.id }
@@ -55,7 +55,7 @@ function ProductDetail({ slug }: { slug: string }) {
     { enabled: !!product?.id }
   )
 
-  if (isLoading) return <div>Loading...</div>
+  if (isPending) return <div>Loading...</div>
   if (!product) return <div>Product not found</div>
 
   return (
@@ -129,7 +129,7 @@ function CreateProduct() {
         <input name="featured" type="checkbox" />
         Featured Product
       </label>
-      <button type="submit" disabled={createProduct.isLoading}>
+      <button type="submit" disabled={createProduct.isPending}>
         Create Product
       </button>
     </form>
@@ -282,9 +282,9 @@ function AddToCartButton({ productId }: { productId: string }) {
   return (
     <button 
       onClick={() => addToCart.mutate({ productId, quantity: 1 })}
-      disabled={addToCart.isLoading}
+      disabled={addToCart.isPending}
     >
-      {addToCart.isLoading ? "Adding..." : "Add to Cart"}
+      {addToCart.isPending ? "Adding..." : "Add to Cart"}
     </button>
   )
 }
@@ -434,8 +434,8 @@ function CheckoutPage() {
       
       <textarea name="notes" placeholder="Order Notes (Optional)" />
       
-      <button type="submit" disabled={createOrder.isLoading}>
-        {createOrder.isLoading ? "Placing Order..." : "Place Order"}
+      <button type="submit" disabled={createOrder.isPending}>
+        {createOrder.isPending ? "Placing Order..." : "Place Order"}
       </button>
     </form>
   )
@@ -514,7 +514,7 @@ function UserProfile() {
           defaultValue={profile?.phone || ""} 
           placeholder="Phone Number" 
         />
-        <button type="submit" disabled={updateProfile.isLoading}>
+        <button type="submit" disabled={updateProfile.isPending}>
           Update Profile
         </button>
       </form>
@@ -543,7 +543,7 @@ function UserProfile() {
 
 ```typescript
 function ProductsWithErrorHandling() {
-  const { data, error, isLoading, refetch } = api.products.getAll.useQuery(
+  const { data, error, isPending, refetch } = api.products.getAll.useQuery(
     { limit: 10 },
     {
       retry: 3,
@@ -551,7 +551,7 @@ function ProductsWithErrorHandling() {
     }
   )
 
-  if (isLoading) return <div>Loading products...</div>
+  if (isPending) return <div>Loading products...</div>
   
   if (error) {
     return (

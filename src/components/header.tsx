@@ -34,6 +34,8 @@ export function Header() {
 	const router = useRouter();
 	const { user, logout } = useAuth();
 
+	console.log("Header - User:", user);
+
 	// tRPC Hooks for cart and wishlist counts
 	const { data: cartCount } = useCartSummary();
 	const { data: wishlistCount } = useWishlistCount();

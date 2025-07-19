@@ -60,10 +60,7 @@ export default function AdminCategoriesPage() {
 		categories?.filter(
 			(category) =>
 				category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-				(category.description &&
-					category.description
-						.toLowerCase()
-						.includes(searchQuery.toLowerCase())),
+				category.description?.toLowerCase().includes(searchQuery.toLowerCase()),
 		) || [];
 
 	const handleDeleteCategory = async (

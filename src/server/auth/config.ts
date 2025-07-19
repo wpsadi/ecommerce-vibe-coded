@@ -91,13 +91,22 @@ export const authConfig = {
 		verificationTokensTable: verificationTokens,
 	}),
 	callbacks: {
-		session: ({ session, user }) => ({
+		session: ({ session, user }) => {
+				console.log("NextAuth Session Callback - Session:", session);
+				console.log("NextAuth Session Callback - User:", user);
+				return {
 			...session,
 			user: {
 				...session.user,
 				id: user.id,
 				role: user.role,
 			},
-		}),
+		}},
+		jwt: ({ token, user }) => {
+			if (user) {
+				token.role = user.role;
+			}
+			return token;
+		},
 	},
 } satisfies NextAuthConfig;

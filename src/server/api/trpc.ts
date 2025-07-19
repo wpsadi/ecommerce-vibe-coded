@@ -26,8 +26,8 @@ import { db } from "@/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
-	const session = await auth();
+export const createTRPCContext = async (opts: { headers: Headers, req: Request }) => {
+	const session = await auth({ req: opts.req });
 
 	return {
 		db,
