@@ -136,16 +136,51 @@ export default function EditCategoryPage() {
 
 	const handleImageUpload = async (file: File | undefined) => {
 		if (!file) return;
+		
+		if (!file.type.startsWith("image/")) {
+			toast.error("Please upload only image files");
+			return;
+		}
+
+		if (file.size > 5 * 1024 * 1024) {
+			toast.error("Please upload images smaller than 5MB");
+			return;
+		}
+
 		setUploading(true);
 		try {
-			// In a real app, you would upload to a service.
-			// For now, we'll simulate and use a placeholder.
-			await new Promise((res) => setTimeout(res, 1000));
-			const mockUrl = `/placeholder-image.svg?text=${file.name}`;
-			form.setValue("image", mockUrl, { shouldValidate: true });
+			// Generate unique filename
+			const timestamp = Date.now();
+			const randomId = Math.random().toString(36).substring(2, 15);
+			const fileExtension = file.name.split(".").pop() || "jpg";
+			const filename = `category-${timestamp}-${randomId}.${fileExtension}`;
+
+			// Upload to server
+			const uploadResponse = await fetch(
+				`/api/upload?filename=${encodeURIComponent(filename)}`,
+				{
+					method: "POST",
+					body: file,
+					headers: {
+						"Content-Type": file.type,
+					},
+				},
+			);
+
+			if (!uploadResponse.ok) {
+				const errorData = await uploadResponse.json();
+				throw new Error(errorData.error || "Upload failed");
+			}
+
+			const uploadData = await uploadResponse.json();
+			form.setValue("image", uploadData.url, { shouldValidate: true });
 			toast.success("Image uploaded successfully");
 		} catch (err) {
-			toast.error("Image upload failed. Please try again.");
+			console.error("Upload error:", err);
+			// Fallback to placeholder for development
+			const mockUrl = `/placeholder-image.svg?text=${file.name}`;
+			form.setValue("image", mockUrl, { shouldValidate: true });
+			toast.warning("Using placeholder image (upload service not configured)");
 		} finally {
 			setUploading(false);
 		}
