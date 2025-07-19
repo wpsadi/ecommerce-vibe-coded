@@ -70,6 +70,29 @@ export default function WishlistPage() {
 	const clearWishlist = useClearWishlist();
 	const addToCart = useAddToCart();
 
+	// Transform the flat database structure to match the expected nested structure
+	const transformedItems: WishlistItem[] = wishlistItems?.map(item => ({
+		id: item.id,
+		createdAt: item.createdAt.toISOString(),
+		product: {
+			id: item.productId || '',
+			name: item.productName || '',
+			slug: item.productSlug || '',
+			price: item.productPrice || '0',
+			originalPrice: item.productOriginalPrice || undefined,
+			stock: item.productStock || 0,
+			active: item.productActive || false,
+			category: {
+				id: '', // Not available in flat structure
+				name: item.categoryName || ''
+			}
+		},
+		primaryImage: {
+			url: item.imageUrl || '',
+			altText: item.imageAltText || ''
+		}
+	})) || [];
+
 	const handleRemoveItem = async (itemId: string) => {
 		try {
 			await removeFromWishlist.mutateAsync({ itemId });
@@ -104,8 +127,7 @@ export default function WishlistPage() {
 		if (!wishlistItems || wishlistItems.length === 0) return;
 
 		try {
-			const items = wishlistItems as WishlistItem[];
-			const promises = items.map((item) =>
+			const promises = transformedItems.map((item) =>
 				addToCart.mutateAsync({
 					productId: item.product.id,
 					quantity: 1,
@@ -129,8 +151,8 @@ export default function WishlistPage() {
 	};
 
 	// Sort items
-	const sortedItems = wishlistItems
-		? [...(wishlistItems as WishlistItem[])].sort((a, b) => {
+	const sortedItems = transformedItems.length > 0
+		? [...transformedItems].sort((a, b) => {
 				let aValue: string | number | Date;
 				let bValue: string | number | Date;
 

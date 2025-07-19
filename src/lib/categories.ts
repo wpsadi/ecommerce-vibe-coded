@@ -137,7 +137,7 @@ export async function deleteCategory(id: string) {
 		.from(products)
 		.where(eq(products.categoryId, id));
 
-	if (productCount[0]?.count > 0) {
+	if (productCount[0] && productCount[0].count > 0) {
 		throw new Error("Cannot delete category with existing products");
 	}
 

@@ -302,12 +302,12 @@ export const useAddToCart = () => {
 			utils.cart.getItems.setData(undefined, (old) => {
 				if (!old) return old;
 				const existingItem = old.find(
-					(item) => item.product.id === newItem.productId,
+					(item: any) => item.product?.id === newItem.productId,
 				);
 				if (existingItem) {
-					return old.map((item) =>
-						item.product.id === newItem.productId
-							? { ...item, quantity: item.quantity + newItem.quantity }
+					return old.map((item: any) =>
+						item.product?.id === newItem.productId
+							? { ...item, quantity: (item.quantity || 0) + newItem.quantity }
 							: item,
 					);
 				}
@@ -569,7 +569,7 @@ export const useOrders = (filters?: {
 	limit?: number;
 	offset?: number;
 }) => {
-	return api.orders.getMyOrders.useQuery(filters, {
+	return api.orders.getMyOrders.useQuery(filters ?? {}, {
 		staleTime: 2 * 60 * 1000,
 	});
 };
@@ -633,23 +633,8 @@ export const useAllOrders = (filters?: {
 	limit?: number;
 	offset?: number;
 }) => {
-	return api.orders.getAll?.useQuery(filters, {
+	return api.orders.getAll?.useQuery(filters ?? {}, {
 		staleTime: 2 * 60 * 1000,
-	});
-};
-
-export const useUpdateOrderStatus = () => {
-	const utils = api.useUtils();
-	return api.orders.updateStatus?.useMutation({
-		onSuccess: (data, variables) => {
-			utils.orders.getById.invalidate({ id: variables.id });
-			utils.orders.getAll?.invalidate();
-			utils.orders.getMyOrders.invalidate();
-			toast.success("Order status updated successfully!");
-		},
-		onError: (error) => {
-			toast.error(error.message || "Failed to update order status");
-		},
 	});
 };
 
@@ -712,7 +697,9 @@ export const useUpdateAddress = () => {
 	const utils = api.useUtils();
 	return api.users.updateAddress.useMutation({
 		onSuccess: (data) => {
-			utils.users.getAddressById.invalidate({ id: data.id });
+			if (data?.id) {
+				utils.users.getAddressById.invalidate({ id: data.id });
+			}
 			utils.users.getAddresses.invalidate();
 			toast.success("Address updated successfully!");
 		},
@@ -756,7 +743,7 @@ export const useAllUsers = (filters?: {
 	limit?: number;
 	offset?: number;
 }) => {
-	return api.users.getAllUsers.useQuery(filters, {
+	return api.users.getAllUsers.useQuery(filters ?? {}, {
 		staleTime: 2 * 60 * 1000,
 	});
 };

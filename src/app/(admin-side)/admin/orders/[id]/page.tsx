@@ -15,7 +15,6 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/auth-context";
 import {
 	useOrder,
-	useUpdateOrderStatus,
 	useUser,
 } from "@/hooks/use-trpc-hooks";
 import {
@@ -55,7 +54,7 @@ export default function AdminOrderDetailsPage() {
 	const { data: customer, isPending: customerLoading } = useUser(
 		order?.userId ?? "",
 	);
-	const updateStatus = useUpdateOrderStatus();
+	// const updateStatus = useUpdateOrderStatus(); // TODO: Implement updateStatus procedure
 
 	useEffect(() => {
 		if (!authUser || authUser.role !== "admin") {
@@ -68,6 +67,9 @@ export default function AdminOrderDetailsPage() {
 	) => {
 		if (!order) return;
 
+		// TODO: Implement status update functionality
+		toast.info("Status update functionality not yet implemented");
+		/*
 		try {
 			await updateStatus.mutateAsync({
 				id: orderId,
@@ -77,6 +79,7 @@ export default function AdminOrderDetailsPage() {
 		} catch (error) {
 			toast.error("Failed to update order status");
 		}
+		*/
 	};
 
 	const getStatusIcon = (status: string) => {
@@ -306,7 +309,7 @@ export default function AdminOrderDetailsPage() {
 									<Select
 										value={order.status}
 										onValueChange={handleStatusUpdate}
-										disabled={updateStatus.isPending}
+										disabled={false} // updateStatus.isPending
 									>
 										<SelectTrigger>
 											<SelectValue />
@@ -319,9 +322,9 @@ export default function AdminOrderDetailsPage() {
 											<SelectItem value="cancelled">Cancelled</SelectItem>
 										</SelectContent>
 									</Select>
-									{updateStatus.isPending && (
+									{/* {updateStatus.isPending && (
 										<p className="text-muted-foreground text-sm">Updating...</p>
-									)}
+									)} */}
 								</div>
 							</CardContent>
 						</Card>

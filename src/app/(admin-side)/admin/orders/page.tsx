@@ -24,7 +24,6 @@ import { useAuth } from "@/contexts/auth-context";
 import {
 	useAllOrders,
 	useOrderStatistics,
-	useUpdateOrderStatus,
 } from "@/hooks/use-trpc-hooks";
 import { Eye, Search } from "lucide-react";
 import Image from "next/image";
@@ -63,7 +62,7 @@ export default function AdminOrdersPage() {
 				: undefined,
 	});
 	const { data: orderStats } = useOrderStatistics();
-	const updateOrderStatus = useUpdateOrderStatus();
+	// const updateOrderStatus = useUpdateOrderStatus(); // TODO: Implement updateStatus procedure
 
 	// Use tRPC data or fallback to empty array
 	const orders = allOrders || [];
@@ -75,11 +74,15 @@ export default function AdminOrdersPage() {
 	}, [user, router]);
 
 	const handleStatusUpdate = async (orderId: string, status: string) => {
+		// TODO: Implement status update functionality
+		toast.info("Status update functionality not yet implemented");
+		/*
 		try {
 			await updateOrderStatus.mutateAsync({ id: orderId, status });
 		} catch (error) {
 			toast.error("Failed to update order status");
 		}
+		*/
 	};
 
 	const getStatusColor = (status: string) => {

@@ -95,7 +95,6 @@ export const authConfig = {
 	},
 	pages: {
 		signIn: "/login",
-		signUp: "/signup",
 	},
 	callbacks: {
 					session: ({ session, user }) => ({
