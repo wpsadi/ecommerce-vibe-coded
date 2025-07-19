@@ -53,19 +53,35 @@ export function ImageUpload({
 						continue;
 					}
 
-					// In a real app, you would upload to a cloud service like AWS S3, Cloudinary, etc.
-					// For demo purposes, we'll create a mock URL
-					const mockUrl = `/placeholder.svg?height=300&width=300&text=${encodeURIComponent(file.name)}`;
-					newImages.push(mockUrl);
+					// Generate unique filename
+					const timestamp = Date.now();
+					const randomId = Math.random().toString(36).substring(2, 15);
+					const fileExtension = file.name.split('.').pop() || 'jpg';
+					const filename = `product-${timestamp}-${randomId}.${fileExtension}`;
 
-					// Simulate upload delay
-					await new Promise((resolve) => setTimeout(resolve, 500));
+					// Upload to Vercel Blob
+					const uploadResponse = await fetch(`/api/upload?filename=${encodeURIComponent(filename)}`, {
+						method: 'POST',
+						body: file,
+						headers: {
+							'Content-Type': file.type,
+						},
+					});
+
+					if (!uploadResponse.ok) {
+						const errorData = await uploadResponse.json();
+						throw new Error(errorData.error || 'Upload failed');
+					}
+
+					const uploadData = await uploadResponse.json();
+					newImages.push(uploadData.url);
 				}
 
 				onImagesChange([...images, ...newImages]);
 
 				toast.success(`${newImages.length} image(s) uploaded successfully`);
 			} catch (error) {
+				console.error('Upload error:', error);
 				toast.error("Failed to upload images. Please try again.");
 			} finally {
 				setUploading(false);
