@@ -21,7 +21,11 @@ import { useCategories, useCreateProduct } from "@/hooks/use-trpc-hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Controller, useForm, type ControllerRenderProps } from "react-hook-form";
+import {
+	Controller,
+	type ControllerRenderProps,
+	useForm,
+} from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -32,7 +36,10 @@ const productSchema = z.object({
 	price: z.string().min(1, "Price is required"),
 	originalPrice: z.string().optional(),
 	categoryId: z.string().min(1, "Category is required"),
-	stock: z.string().min(1, "Stock is required").transform(val => parseInt(val)),
+	stock: z
+		.string()
+		.min(1, "Stock is required")
+		.transform((val) => Number.parseInt(val)),
 	specifications: z.record(z.string()).optional(),
 	images: z.array(z.string()).optional(),
 });
@@ -271,7 +278,8 @@ export default function AddProductPage() {
 										</div>
 
 										{watch("specifications") &&
-											Object.entries(watch("specifications") || {}).length > 0 && (
+											Object.entries(watch("specifications") || {}).length >
+												0 && (
 												<div className="rounded-lg border p-4">
 													<h4 className="mb-2 font-medium">
 														Added Specifications:

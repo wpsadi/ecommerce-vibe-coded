@@ -192,8 +192,11 @@ export default function OrdersPage() {
 									<div className="rounded-lg bg-muted p-3">
 										<p className="mb-1 font-medium text-sm">Delivery Address</p>
 										<p className="text-muted-foreground text-sm">
-											{order.shippingAddress?.firstName} {order.shippingAddress?.lastName}, {order.shippingAddress?.addressLine1},{" "}
-											{order.shippingAddress?.city}, {order.shippingAddress?.state} -{" "}
+											{order.shippingAddress?.firstName}{" "}
+											{order.shippingAddress?.lastName},{" "}
+											{order.shippingAddress?.addressLine1},{" "}
+											{order.shippingAddress?.city},{" "}
+											{order.shippingAddress?.state} -{" "}
 											{order.shippingAddress?.postalCode}
 										</p>
 									</div>

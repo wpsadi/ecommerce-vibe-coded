@@ -492,7 +492,8 @@ export const ordersRouter = createTRPCRouter({
 				if (status) {
 					conditions.push(eq(orders.status, status));
 				}
-				const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
+				const whereCondition =
+					conditions.length > 0 ? and(...conditions) : undefined;
 
 				const allOrders = await ctx.db.query.orders.findMany({
 					where: whereCondition,

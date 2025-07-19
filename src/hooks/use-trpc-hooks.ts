@@ -560,12 +560,12 @@ export const useClearWishlist = () => {
 
 export const useOrders = (filters?: {
 	status?:
-	| "pending"
-	| "confirmed"
-	| "shipped"
-	| "delivered"
-	| "cancelled"
-	| "refunded";
+		| "pending"
+		| "confirmed"
+		| "shipped"
+		| "delivered"
+		| "cancelled"
+		| "refunded";
 	limit?: number;
 	offset?: number;
 }) => {
@@ -623,12 +623,12 @@ export const useOrderStatistics = () => {
 // Admin-specific order hooks
 export const useAllOrders = (filters?: {
 	status?:
-	| "pending"
-	| "confirmed"
-	| "shipped"
-	| "delivered"
-	| "cancelled"
-	| "refunded";
+		| "pending"
+		| "confirmed"
+		| "shipped"
+		| "delivered"
+		| "cancelled"
+		| "refunded";
 	search?: string;
 	limit?: number;
 	offset?: number;

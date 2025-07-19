@@ -64,16 +64,21 @@ export default function SearchPage() {
 			// Price filter
 			filtered = filtered.filter(
 				(product) =>
-					product.price >= priceRange[0] && product.price <= priceRange[1],
+					Number(product?.price || 0) >= priceRange[0] &&
+					Number(product?.price || 0) <= priceRange[1],
 			);
 
 			// Sort
 			switch (sortBy) {
 				case "price-low":
-					filtered.sort((a, b) => a.price - b.price);
+					filtered.sort(
+						(a, b) => Number(a?.price || 0) - Number(b?.price || 0),
+					);
 					break;
 				case "price-high":
-					filtered.sort((a, b) => b.price - a.price);
+					filtered.sort(
+						(a, b) => Number(b?.price || 0) - Number(a?.price || 0),
+					);
 					break;
 				case "rating":
 					filtered.sort((a, b) => b.rating - a.rating);

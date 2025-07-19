@@ -58,7 +58,13 @@ export const authConfig = {
 
 				const user = await db.query.users.findFirst({
 					where: (users, { eq }) => eq(users.email, String(credentials.email)),
-					columns: { id: true, name: true, email: true, role: true, password: true },
+					columns: {
+						id: true,
+						name: true,
+						email: true,
+						role: true,
+						password: true,
+					},
 				});
 
 				if (

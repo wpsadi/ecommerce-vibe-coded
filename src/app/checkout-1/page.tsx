@@ -81,7 +81,9 @@ export default function CheckoutPage() {
 	>(null);
 	const [useSameAsShipping, setUseSameAsShipping] = useState(true);
 
-	const { control, handleSubmit, setValue, watch } = useForm<z.infer<typeof checkoutSchema>>({
+	const { control, handleSubmit, setValue, watch } = useForm<
+		z.infer<typeof checkoutSchema>
+	>({
 		resolver: zodResolver(checkoutSchema),
 		defaultValues: {
 			shippingAddressId: "",
@@ -284,9 +286,10 @@ export default function CheckoutPage() {
 											</span>
 											<span className="font-medium">
 												₹
-												{(Number(item.product?.price || 0) * (item.quantity || 0)).toFixed(
-													2,
-												)}
+												{(
+													Number(item.product?.price || 0) *
+													(item.quantity || 0)
+												).toFixed(2)}
 											</span>
 										</div>
 									))}
@@ -383,7 +386,10 @@ function AddressSection({
 	);
 }
 
-function AddressDialog({ type, addressId }: { type: string; addressId?: string }) {
+function AddressDialog({
+	type,
+	addressId,
+}: { type: string; addressId?: string }) {
 	const createAddress = useCreateAddress();
 	const updateAddress = useUpdateAddress();
 	const [open, setOpen] = useState(false);
@@ -472,7 +478,11 @@ function AddressDialog({ type, addressId }: { type: string; addressId?: string }
 	);
 }
 
-function PaymentOption({ value, label, Icon }: { value: string; label: string; Icon: any }) {
+function PaymentOption({
+	value,
+	label,
+	Icon,
+}: { value: string; label: string; Icon: any }) {
 	return (
 		<Label
 			htmlFor={value}

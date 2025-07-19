@@ -365,16 +365,16 @@ function CartItem({
 }) {
 	const discountPercentage = item.product.originalPrice
 		? Math.round(
-			((Number(item.product.originalPrice) - Number(item.product.price)) /
-				Number(item.product.originalPrice)) *
-			100,
-		)
+				((Number(item.product.originalPrice) - Number(item.product.price)) /
+					Number(item.product.originalPrice)) *
+					100,
+			)
 		: 0;
 
 	const itemTotal = Number(item.product.price) * item.quantity;
 	const itemSavings = item.product.originalPrice
 		? (Number(item.product.originalPrice) - Number(item.product.price)) *
-		item.quantity
+			item.quantity
 		: 0;
 
 	return (

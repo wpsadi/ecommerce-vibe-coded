@@ -276,8 +276,8 @@ export default function AdminOrderDetailsPage() {
 											{Number.parseFloat(order.shippingAmount ?? "0") === 0
 												? "Free"
 												: `₹${Number.parseFloat(
-													order.shippingAmount ?? "0",
-												).toLocaleString()}`}
+														order.shippingAmount ?? "0",
+													).toLocaleString()}`}
 										</span>
 									</div>
 									<div className="flex justify-between font-bold text-lg">

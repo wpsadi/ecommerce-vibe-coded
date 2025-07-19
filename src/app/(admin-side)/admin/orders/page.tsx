@@ -38,12 +38,29 @@ export default function AdminOrdersPage() {
 	const router = useRouter();
 
 	const [searchQuery, setSearchQuery] = useState("");
-	const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "confirmed" | "shipped" | "delivered" | "cancelled" | "refunded">("all");
+	const [statusFilter, setStatusFilter] = useState<
+		| "all"
+		| "pending"
+		| "confirmed"
+		| "shipped"
+		| "delivered"
+		| "cancelled"
+		| "refunded"
+	>("all");
 
 	// tRPC Hooks
 	const { data: allOrders, isPending } = useAllOrders({
 		search: searchQuery || undefined,
-		status: statusFilter !== "all" ? (statusFilter as "pending" | "confirmed" | "shipped" | "delivered" | "cancelled" | "refunded") : undefined,
+		status:
+			statusFilter !== "all"
+				? (statusFilter as
+						| "pending"
+						| "confirmed"
+						| "shipped"
+						| "delivered"
+						| "cancelled"
+						| "refunded")
+				: undefined,
 	});
 	const { data: orderStats } = useOrderStatistics();
 	const updateOrderStatus = useUpdateOrderStatus();
@@ -132,7 +149,12 @@ export default function AdminOrdersPage() {
 									className="pl-10"
 								/>
 							</div>
-							<Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as typeof statusFilter)}>
+							<Select
+								value={statusFilter}
+								onValueChange={(value) =>
+									setStatusFilter(value as typeof statusFilter)
+								}
+							>
 								<SelectTrigger className="w-48">
 									<SelectValue placeholder="Filter by status" />
 								</SelectTrigger>
@@ -176,7 +198,8 @@ export default function AdminOrdersPage() {
 											<TableCell>
 												<div>
 													<div className="font-medium">
-														{order.shippingAddress?.firstName} {order.shippingAddress?.lastName}
+														{order.shippingAddress?.firstName}{" "}
+														{order.shippingAddress?.lastName}
 													</div>
 													<div className="text-muted-foreground text-sm">
 														{getUserEmail(order.userId)}

@@ -407,7 +407,9 @@ export default function CheckoutPage() {
 							<CardContent>
 								<RadioGroup
 									value={paymentMethod}
-									onValueChange={(value) => setPaymentMethod(value as typeof paymentMethod)}
+									onValueChange={(value) =>
+										setPaymentMethod(value as typeof paymentMethod)
+									}
 								>
 									<div className="space-y-4">
 										<div className="flex items-center space-x-3 rounded-lg border p-4">
@@ -487,7 +489,8 @@ export default function CheckoutPage() {
 											<span className="font-medium">
 												₹
 												{(
-													Number(item.product?.price || 0) * (item.quantity || 0)
+													Number(item.product?.price || 0) *
+													(item.quantity || 0)
 												).toLocaleString()}
 											</span>
 										</div>
@@ -516,25 +519,20 @@ export default function CheckoutPage() {
 									</div>
 									<div className="flex justify-between">
 										<span>Shipping</span>
-										<span className="text-green-600">
-											Free
-										</span>
+										<span className="text-green-600">Free</span>
 									</div>
 									<div className="flex justify-between">
 										<span>Tax</span>
-										<span>
-											₹0
-										</span>
+										<span>₹0</span>
 									</div>
-									{cartSummary?.savings &&
-										Number(cartSummary.savings) > 0 && (
-											<div className="flex justify-between text-green-600">
-												<span>Discount</span>
-												<span>
-													-₹{Number(cartSummary.savings).toLocaleString()}
-												</span>
-											</div>
-										)}
+									{cartSummary?.savings && Number(cartSummary.savings) > 0 && (
+										<div className="flex justify-between text-green-600">
+											<span>Discount</span>
+											<span>
+												-₹{Number(cartSummary.savings).toLocaleString()}
+											</span>
+										</div>
+									)}
 								</div>
 
 								<Separator />

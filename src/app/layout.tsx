@@ -6,9 +6,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { CartProvider } from "@/contexts/cart-context";
 import { WishlistProvider } from "@/contexts/wishlist-context";
+import { TRPCReactProvider } from "@/trpc/react";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
-import { TRPCReactProvider } from "@/trpc/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,27 +26,25 @@ export default function RootLayout({
 		<html lang="en" suppressHydrationWarning>
 			<body className={inter.className}>
 				<TRPCReactProvider>
-
-<ThemeProvider
-					attribute="class"
-					defaultTheme="system"
-					enableSystem
-					disableTransitionOnChange={false}
-					storageKey="ecommerce-theme"
-				>
-					<SessionProvider>
-						<AuthProvider>
-							<CartProvider>
-								<WishlistProvider>
-									{children}
-									<Toaster />
-								</WishlistProvider>
-							</CartProvider>
-						</AuthProvider>
-					</SessionProvider>
-				</ThemeProvider>
+					<ThemeProvider
+						attribute="class"
+						defaultTheme="system"
+						enableSystem
+						disableTransitionOnChange={false}
+						storageKey="ecommerce-theme"
+					>
+						<SessionProvider>
+							<AuthProvider>
+								<CartProvider>
+									<WishlistProvider>
+										{children}
+										<Toaster />
+									</WishlistProvider>
+								</CartProvider>
+							</AuthProvider>
+						</SessionProvider>
+					</ThemeProvider>
 				</TRPCReactProvider>
-				
 			</body>
 		</html>
 	);

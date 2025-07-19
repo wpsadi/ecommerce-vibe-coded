@@ -44,37 +44,37 @@ export default function HomePage() {
 						<div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
 							{categoriesLoading
 								? Array.from({ length: 6 }).map((_, i) => (
-									<Card key={`category-skeleton-${i}`}>
-										<CardContent className="p-6 text-center">
-											<div className="mx-auto mb-2 h-16 w-16 animate-pulse rounded-lg bg-muted" />
-											<div className="mx-auto h-4 w-20 animate-pulse rounded bg-muted" />
-										</CardContent>
-									</Card>
-								))
-								: featuredCategories?.map((category) => (
-									<Link key={category.id} href={`/category/${category.slug}`}>
-										<Card className="cursor-pointer transition-shadow hover:shadow-md">
+										<Card key={`category-skeleton-${i}`}>
 											<CardContent className="p-6 text-center">
-												{category.image ? (
-													<div className="mx-auto mb-2 h-16 w-16 overflow-hidden rounded-lg">
-														<Image
-															src={category.image || "/placeholder.svg"}
-															alt={category.name}
-															width={64}
-															height={64}
-															className="h-full w-full object-cover"
-														/>
-													</div>
-												) : (
-													<div className="mb-2 text-3xl">{category.icon}</div>
-												)}
-												<h3 className="font-medium text-sm">
-													{category.name}
-												</h3>
+												<div className="mx-auto mb-2 h-16 w-16 animate-pulse rounded-lg bg-muted" />
+												<div className="mx-auto h-4 w-20 animate-pulse rounded bg-muted" />
 											</CardContent>
 										</Card>
-									</Link>
-								))}
+									))
+								: featuredCategories?.map((category) => (
+										<Link key={category.id} href={`/category/${category.slug}`}>
+											<Card className="cursor-pointer transition-shadow hover:shadow-md">
+												<CardContent className="p-6 text-center">
+													{category.image ? (
+														<div className="mx-auto mb-2 h-16 w-16 overflow-hidden rounded-lg">
+															<Image
+																src={category.image || "/placeholder.svg"}
+																alt={category.name}
+																width={64}
+																height={64}
+																className="h-full w-full object-cover"
+															/>
+														</div>
+													) : (
+														<div className="mb-2 text-3xl">{category.icon}</div>
+													)}
+													<h3 className="font-medium text-sm">
+														{category.name}
+													</h3>
+												</CardContent>
+											</Card>
+										</Link>
+									))}
 						</div>
 
 						{/* Show all categories link */}
@@ -99,14 +99,17 @@ export default function HomePage() {
 						<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 							{productsLoading
 								? Array.from({ length: 8 }).map((_, i) => (
-									<ProductSkeleton key={`product-skeleton-${i}`} />
-								))
+										<ProductSkeleton key={`product-skeleton-${i}`} />
+									))
 								: featuredProducts?.map((product) => (
-									<ProductCard key={product.id} product={{
-										...product,
-										originalPrice: product.originalPrice || undefined
-									}} />
-								))}
+										<ProductCard
+											key={product.id}
+											product={{
+												...product,
+												originalPrice: product.originalPrice || undefined,
+											}}
+										/>
+									))}
 						</div>
 					</div>
 				</section>

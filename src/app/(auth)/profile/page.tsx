@@ -85,7 +85,7 @@ export default function ProfilePage() {
 				type: (addressData.type as "shipping" | "billing") || "shipping",
 				phone: addressData.phone || undefined,
 				company: addressData.company || undefined,
-				addressLine2: addressData.addressLine2 || undefined
+				addressLine2: addressData.addressLine2 || undefined,
 			});
 		} catch (error) {
 			// Error handling is done in the hook

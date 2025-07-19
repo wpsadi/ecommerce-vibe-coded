@@ -38,7 +38,7 @@ export default function CategoriesPage() {
 		) || [];
 
 	const parentCategories = filteredCategories;
-	const getSubcategories = (parentId: string) => [];  // No subcategories in current schema
+	const getSubcategories = (parentId: string) => []; // No subcategories in current schema
 
 	if (error) {
 		return (
