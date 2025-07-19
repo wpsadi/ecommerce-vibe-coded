@@ -17,7 +17,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/auth-context";
 import {
-	useCartItems,
+	useCart,
 	useCartSummary,
 	useClearCart,
 	useCreateAddress,
@@ -54,7 +54,7 @@ export default function CheckoutPage() {
 	});
 
 	// tRPC Hooks
-	const { data: cartItems, isPending: cartLoading } = useCartItems();
+	const { data: cartItems, isPending: cartLoading } = useCart();
 	const { data: cartSummary } = useCartSummary();
 	const { data: addresses } = useShippingAddresses();
 	const createAddress = useCreateAddress();
@@ -81,7 +81,9 @@ export default function CheckoutPage() {
 	const handleAddAddress = async () => {
 		try {
 			const result = await createAddress.mutateAsync(newAddress);
-			setSelectedAddress(result.id);
+			if (result?.id) {
+				setSelectedAddress(result.id);
+			}
 			setShowAddressForm(false);
 			setNewAddress({
 				firstName: "",
@@ -118,7 +120,7 @@ export default function CheckoutPage() {
 		}
 
 		try {
-			const orderItems = cartItems.map((item) => ({
+			const orderItems = cartItems.map((item: any) => ({
 				productId: item.product.id,
 				quantity: item.quantity,
 				unitPrice: item.product.price,
@@ -405,7 +407,7 @@ export default function CheckoutPage() {
 							<CardContent>
 								<RadioGroup
 									value={paymentMethod}
-									onValueChange={setPaymentMethod}
+									onValueChange={(value) => setPaymentMethod(value as typeof paymentMethod)}
 								>
 									<div className="space-y-4">
 										<div className="flex items-center space-x-3 rounded-lg border p-4">
@@ -465,27 +467,27 @@ export default function CheckoutPage() {
 							<CardContent className="space-y-4">
 								{/* Items */}
 								<div className="space-y-3">
-									{cartItems?.map((item) => (
+									{cartItems?.map((item: any) => (
 										<div key={item.id} className="flex items-center gap-3">
 											<Image
 												src={item.primaryImage?.url || "/placeholder.svg"}
-												alt={item.product.name}
+												alt={item.product?.name || "Product"}
 												width={50}
 												height={50}
 												className="rounded object-cover"
 											/>
 											<div className="flex-1">
 												<h4 className="font-medium text-sm">
-													{item.product.name}
+													{item.product?.name || "Product"}
 												</h4>
 												<p className="text-muted-foreground text-xs">
-													Qty: {item.quantity}
+													Qty: {item.quantity || 0}
 												</p>
 											</div>
 											<span className="font-medium">
 												₹
 												{(
-													Number(item.product.price) * item.quantity
+													Number(item.product?.price || 0) * (item.quantity || 0)
 												).toLocaleString()}
 											</span>
 										</div>
@@ -500,7 +502,7 @@ export default function CheckoutPage() {
 										<span>
 											Subtotal (
 											{cartItems?.reduce(
-												(sum, item) => sum + item.quantity,
+												(sum: number, item: any) => sum + (item.quantity || 0),
 												0,
 											) || 0}{" "}
 											items)
@@ -515,27 +517,21 @@ export default function CheckoutPage() {
 									<div className="flex justify-between">
 										<span>Shipping</span>
 										<span className="text-green-600">
-											{cartSummary?.shippingCost &&
-												Number(cartSummary.shippingCost) > 0
-												? `₹${Number(cartSummary.shippingCost).toLocaleString()}`
-												: "Free"}
+											Free
 										</span>
 									</div>
 									<div className="flex justify-between">
 										<span>Tax</span>
 										<span>
-											₹
-											{cartSummary?.tax
-												? Number(cartSummary.tax).toLocaleString()
-												: "0"}
+											₹0
 										</span>
 									</div>
-									{cartSummary?.discount &&
-										Number(cartSummary.discount) > 0 && (
+									{cartSummary?.savings &&
+										Number(cartSummary.savings) > 0 && (
 											<div className="flex justify-between text-green-600">
 												<span>Discount</span>
 												<span>
-													-₹{Number(cartSummary.discount).toLocaleString()}
+													-₹{Number(cartSummary.savings).toLocaleString()}
 												</span>
 											</div>
 										)}
@@ -547,8 +543,8 @@ export default function CheckoutPage() {
 									<span>Total</span>
 									<span>
 										₹
-										{cartSummary?.total
-											? Number(cartSummary.total).toLocaleString()
+										{cartSummary?.subtotal
+											? Number(cartSummary.subtotal).toLocaleString()
 											: "0"}
 									</span>
 								</div>
@@ -574,7 +570,7 @@ export default function CheckoutPage() {
 								>
 									{createOrder.isPending
 										? "Placing Order..."
-										: `Place Order - ₹${cartSummary?.total ? Number(cartSummary.total).toLocaleString() : "0"}`}
+										: `Place Order - ₹${cartSummary?.subtotal ? Number(cartSummary.subtotal).toLocaleString() : "0"}`}
 								</Button>
 							</CardContent>
 						</Card>

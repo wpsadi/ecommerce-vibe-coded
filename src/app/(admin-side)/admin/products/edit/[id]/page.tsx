@@ -81,10 +81,10 @@ export default function EditProductPage() {
 				"specifications",
 				product.specifications as Record<string, string>,
 			);
-			setValue(
-				"images",
-				product.images?.map((img: any) => img.url) || [],
-			);
+			// setValue(
+			// 	"images",
+			// 	product.images?.map((img: any) => img.url) || [],
+			// );
 		}
 	}, [product, setValue]);
 

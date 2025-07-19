@@ -173,7 +173,7 @@ export default function AdminProductsPage() {
 												<TableCell>
 													<div className="flex items-center gap-3">
 														<Image
-															src={product.image || "/placeholder.svg"}
+															src={('images' in product && product.images && product.images[0]?.url) || "/placeholder.svg"}
 															alt={product.name}
 															width={50}
 															height={50}
@@ -187,8 +187,8 @@ export default function AdminProductsPage() {
 														</div>
 													</div>
 												</TableCell>
-												<TableCell>{product.category}</TableCell>
-												<TableCell>₹{product.price.toLocaleString()}</TableCell>
+												<TableCell>{product.category?.name || "No Category"}</TableCell>
+												<TableCell>₹{('price' in product ? Number(product.price) : 0).toLocaleString()}</TableCell>
 												<TableCell>
 													<div className="flex items-center gap-2">
 														{product.stock}
