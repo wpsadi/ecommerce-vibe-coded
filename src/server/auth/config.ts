@@ -98,6 +98,7 @@ export const authConfig = {
 	},
 	callbacks: {
 		session: ({ session, token }) => ({
+
 			...session,
 			user: {
 				...session.user,
@@ -108,7 +109,7 @@ export const authConfig = {
 		jwt: ({ token, user }) => {
 			console.log("NextAuth JWT Callback - Token:", token);
 			console.log("NextAuth JWT Callback - User:", user);
-			
+
 			if (user) {
 				token.role = user.role;
 			}

@@ -17,23 +17,16 @@ export const wishlistRouter = createTRPCRouter({
 				.select({
 					id: wishlistItems.id,
 					createdAt: wishlistItems.createdAt,
-					product: {
-						id: products.id,
-						name: products.name,
-						slug: products.slug,
-						price: products.price,
-						originalPrice: products.originalPrice,
-						stock: products.stock,
-						active: products.active,
-						category: {
-							id: categories.id, // Ensure this matches the schema or remove if not applicable
-							name: categories.name as unknown as string, // Explicitly cast to string
-						},
-					},
-					primaryImage: {
-						url: productImages.url,
-						altText: productImages.altText,
-					},
+					productId: products.id,
+					productName: products.name,
+					productSlug: products.slug,
+					productPrice: products.price,
+					productOriginalPrice: products.originalPrice,
+					productStock: products.stock,
+					productActive: products.active,
+					categoryName: categories.name,
+					imageUrl: productImages.url,
+					imageAltText: productImages.altText,
 				})
 				.from(wishlistItems)
 				.leftJoin(products, eq(wishlistItems.productId, products.id))

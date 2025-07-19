@@ -19,23 +19,16 @@ export const cartRouter = createTRPCRouter({
 					quantity: cartItems.quantity,
 					createdAt: cartItems.createdAt,
 					updatedAt: cartItems.updatedAt,
-					product: {
-						id: products.id,
-						name: products.name,
-						slug: products.slug,
-						price: products.price,
-						originalPrice: products.originalPrice,
-						stock: products.stock,
-						active: products.active,
-						category: {
-							id: categories.id,
-							name: categories.name,
-						},
-					},
-					primaryImage: {
-						url: productImages.url,
-						altText: productImages.altText,
-					},
+					productId: products.id,
+					productName: products.name,
+					productSlug: products.slug,
+					productPrice: products.price,
+					productOriginalPrice: products.originalPrice,
+					productStock: products.stock,
+					productActive: products.active,
+					categoryName: categories.name,
+					imageUrl: productImages.url,
+					imageAltText: productImages.altText,
 				})
 				.from(cartItems)
 				.leftJoin(products, eq(cartItems.productId, products.id))

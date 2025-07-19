@@ -235,7 +235,9 @@ export default function SearchPage() {
 										/>
 										<div className="flex items-center justify-between text-muted-foreground text-sm">
 											<span>₹{(priceRange?.[0] ?? 0).toLocaleString()}</span>
-											<span>₹{(priceRange?.[1] ?? 10000).toLocaleString()}</span>
+											<span>
+												₹{(priceRange?.[1] ?? 10000).toLocaleString()}
+											</span>
 										</div>
 									</div>
 								</div>
