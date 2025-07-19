@@ -77,7 +77,9 @@ export function ProductCard({ product }: ProductCardProps) {
 
 	const discountPercentage = product.originalPrice
 		? Math.round(
-				((Number(product.originalPrice) - Number(product.price)) / Number(product.originalPrice)) * 100,
+				((Number(product.originalPrice) - Number(product.price)) /
+					Number(product.originalPrice)) *
+					100,
 			)
 		: 0;
 

@@ -25,8 +25,12 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useAuth } from "@/contexts/auth-context";
-import { useAllUsers, useToggleUserBlock, usePromoteToAdmin } from "@/hooks/use-trpc-hooks";
-import { Eye, Search, UserCheck, UserX, Crown } from "lucide-react";
+import {
+	useAllUsers,
+	usePromoteToAdmin,
+	useToggleUserBlock,
+} from "@/hooks/use-trpc-hooks";
+import { Crown, Eye, Search, UserCheck, UserX } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -154,7 +158,13 @@ export default function AdminUsersPage() {
 												<TableCell>{userData.email}</TableCell>
 												<TableCell>{userData.phone || "N/A"}</TableCell>
 												<TableCell>
-													<Badge variant={userData.role === "admin" ? "secondary" : "outline"}>
+													<Badge
+														variant={
+															userData.role === "admin"
+																? "secondary"
+																: "outline"
+														}
+													>
 														{userData.role === "admin" ? "Admin" : "User"}
 													</Badge>
 												</TableCell>
@@ -247,16 +257,23 @@ export default function AdminUsersPage() {
 																</AlertDialogTrigger>
 																<AlertDialogContent>
 																	<AlertDialogHeader>
-																		<AlertDialogTitle>Promote to Admin</AlertDialogTitle>
+																		<AlertDialogTitle>
+																			Promote to Admin
+																		</AlertDialogTitle>
 																		<AlertDialogDescription>
-																			Are you sure you want to promote {userData.name} to admin?
-																			This will give them full administrative privileges.
+																			Are you sure you want to promote{" "}
+																			{userData.name} to admin? This will give
+																			them full administrative privileges.
 																		</AlertDialogDescription>
 																	</AlertDialogHeader>
 																	<AlertDialogFooter>
-																		<AlertDialogCancel>Cancel</AlertDialogCancel>
+																		<AlertDialogCancel>
+																			Cancel
+																		</AlertDialogCancel>
 																		<AlertDialogAction
-																			onClick={() => handlePromoteToAdmin(userData.id)}
+																			onClick={() =>
+																				handlePromoteToAdmin(userData.id)
+																			}
 																			className="bg-blue-500 hover:bg-blue-600"
 																		>
 																			Promote to Admin

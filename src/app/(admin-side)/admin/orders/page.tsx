@@ -21,10 +21,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useAuth } from "@/contexts/auth-context";
-import {
-	useAllOrders,
-	useOrderStatistics,
-} from "@/hooks/use-trpc-hooks";
+import { useAllOrders, useOrderStatistics } from "@/hooks/use-trpc-hooks";
 import { Eye, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";

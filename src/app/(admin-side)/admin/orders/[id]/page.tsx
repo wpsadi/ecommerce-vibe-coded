@@ -13,10 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/auth-context";
-import {
-	useOrder,
-	useUser,
-} from "@/hooks/use-trpc-hooks";
+import { useOrder, useUser } from "@/hooks/use-trpc-hooks";
 import {
 	CheckCircle,
 	Clock,
