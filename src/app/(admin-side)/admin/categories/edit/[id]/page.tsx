@@ -137,12 +137,24 @@ export default function EditCategoryPage() {
 	const handleImageUpload = async (file: File | undefined) => {
 		if (!file) return;
 		setUploading(true);
+		const formData = new FormData();
+		formData.append("file", file);
+
 		try {
-			// In a real app, you would upload to a service.
-			// For now, we'll simulate and use a placeholder.
-			await new Promise((res) => setTimeout(res, 1000));
-			const mockUrl = `/placeholder-image.svg?text=${file.name}`;
-			form.setValue("image", mockUrl, { shouldValidate: true });
+			const response = await fetch(`/api/upload?filename=${file.name}`, {
+				method: "POST",
+				body: file,
+				headers: {
+					"Content-Type": file.type,
+				},
+			});
+
+			if (!response.ok) {
+				throw new Error("Image upload failed");
+			}
+
+			const data = await response.json();
+			form.setValue("image", data.url, { shouldValidate: true });
 			toast.success("Image uploaded successfully");
 		} catch (err) {
 			toast.error("Image upload failed. Please try again.");
@@ -206,7 +218,7 @@ export default function EditCategoryPage() {
 
 					<div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
 						<div className="lg:col-span-2">
-							<Form {...form}>
+							<Form form={form}>
 								<form
 									onSubmit={form.handleSubmit(onSubmit)}
 									className="space-y-8"

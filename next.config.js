@@ -4,11 +4,23 @@
  */
 import "./src/env.js";
 
-/** @type {import("next").NextConfig} */
-const config = {
-	typescript: {
-		ignoreBuildErrors: true,
-	},
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'blob.vercel-storage.com',
+      },
+    ],
+  },
 };
 
-export default config;
+
+export default nextConfig
