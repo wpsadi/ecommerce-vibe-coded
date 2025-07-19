@@ -98,7 +98,6 @@ export const authConfig = {
 	},
 	callbacks: {
 		session: ({ session, token }) => ({
-
 			...session,
 			user: {
 				...session.user,
