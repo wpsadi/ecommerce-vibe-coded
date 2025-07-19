@@ -12,15 +12,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-	Form,
-	FormControl,
-	FormDescription,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -31,13 +22,10 @@ import {
 	useProducts,
 	useUpdateCategory,
 } from "@/hooks/use-trpc-hooks";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Package, Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import type { SubmitHandler } from "react-hook-form";
-import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -71,28 +59,22 @@ export default function EditCategoryPage() {
 
 	const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
 	const [uploading, setUploading] = useState(false);
-
-	const form = useForm<CategoryFormValues>({
-		resolver: zodResolver(categoryFormSchema),
-		defaultValues: {
-			name: "",
-			slug: "",
-			description: "",
-			icon: "",
-			image: "",
-			featured: false,
-			active: true,
-			sortOrder: 0,
-			metaTitle: "",
-			metaDescription: "",
-		},
+	const [formData, setFormData] = useState<CategoryFormValues>({
+		name: "",
+		slug: "",
+		description: "",
+		icon: "",
+		image: "",
+		featured: false,
+		active: true,
+		sortOrder: 0,
+		metaTitle: "",
+		metaDescription: "",
 	});
-
-	const { reset } = form;
 
 	useEffect(() => {
 		if (category) {
-			reset({
+			setFormData({
 				name: category.name,
 				slug: category.slug,
 				description: category.description ?? "",
@@ -105,7 +87,7 @@ export default function EditCategoryPage() {
 				metaDescription: category.metaDescription ?? "",
 			});
 		}
-	}, [category, reset]);
+	}, [category]);
 
 	useEffect(() => {
 		if (categoryProducts) {
@@ -113,20 +95,30 @@ export default function EditCategoryPage() {
 		}
 	}, [categoryProducts]);
 
-	const {
-		data: products = [],
-		isPending: isPendingProducts,
-		isError: isErrorProducts,
-	} = useProducts();
-
 	const updateCategoryMutation = useUpdateCategory();
 	const assignProductsToCategory = useAssignProductsToCategory();
 
-	const onSubmit: SubmitHandler<CategoryFormValues> = async (data) => {
+	const handleInputChange = (field: keyof CategoryFormValues, value: any) => {
+		setFormData(prev => ({ ...prev, [field]: value }));
+	};
+
+	const onSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+
+		// Basic validation
+		if (!formData.name.trim()) {
+			toast.error("Name is required");
+			return;
+		}
+		if (!formData.slug.trim()) {
+			toast.error("Slug is required");
+			return;
+		}
+
 		try {
 			await updateCategoryMutation.mutateAsync({
 				id: categoryId,
-				...data,
+				...formData,
 			});
 			router.push("/admin/categories");
 		} catch (error) {
@@ -154,7 +146,7 @@ export default function EditCategoryPage() {
 			}
 
 			const data = await response.json();
-			form.setValue("image", data.url, { shouldValidate: true });
+			handleInputChange("image", data.url);
 			toast.success("Image uploaded successfully");
 		} catch (err) {
 			toast.error("Image upload failed. Please try again.");
@@ -162,6 +154,12 @@ export default function EditCategoryPage() {
 			setUploading(false);
 		}
 	};
+
+	const {
+		data: products = [],
+		isPending: isPendingProducts,
+		isError: isErrorProducts,
+	} = useProducts();
 
 	const handleProductSelection = (productId: string, checked: boolean) => {
 		setSelectedProducts((prev) =>
@@ -218,189 +216,141 @@ export default function EditCategoryPage() {
 
 					<div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
 						<div className="lg:col-span-2">
-							<Form form={form}>
-								<form
-									onSubmit={form.handleSubmit(onSubmit)}
-									className="space-y-8"
-								>
-									<Card>
-										<CardHeader>
-											<CardTitle>Category Details</CardTitle>
-										</CardHeader>
-										<CardContent className="space-y-6">
-											<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-												<FormField
-													control={form.control}
-													name="name"
-													render={({ field }) => (
-														<FormItem>
-															<FormLabel>Category Name</FormLabel>
-															<FormControl>
-																<Input
-																	placeholder="e.g. Electronics"
-																	{...field}
-																/>
-															</FormControl>
-															<FormMessage />
-														</FormItem>
-													)}
-												/>
-												<FormField
-													control={form.control}
-													name="slug"
-													render={({ field }) => (
-														<FormItem>
-															<FormLabel>Slug</FormLabel>
-															<FormControl>
-																<Input
-																	placeholder="e.g. electronics"
-																	{...field}
-																/>
-															</FormControl>
-															<FormMessage />
-														</FormItem>
-													)}
+							<form onSubmit={onSubmit} className="space-y-8">
+								<Card>
+									<CardHeader>
+										<CardTitle>Category Details</CardTitle>
+									</CardHeader>
+									<CardContent className="space-y-6">
+										<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+											<div className="space-y-2">
+												<Label htmlFor="name">Category Name</Label>
+												<Input
+													id="name"
+													placeholder="e.g. Electronics"
+													value={formData.name}
+													onChange={(e) => handleInputChange("name", e.target.value)}
+													required
 												/>
 											</div>
-											<FormField
-												control={form.control}
-												name="description"
-												render={({ field }) => (
-													<FormItem>
-														<FormLabel>Description</FormLabel>
-														<FormControl>
-															<Textarea
-																placeholder="A brief description of the category."
-																{...field}
-																value={field.value ?? ""}
-															/>
-														</FormControl>
-														<FormMessage />
-													</FormItem>
-												)}
+											<div className="space-y-2">
+												<Label htmlFor="slug">Slug</Label>
+												<Input
+													id="slug"
+													placeholder="e.g. electronics"
+													value={formData.slug}
+													onChange={(e) => handleInputChange("slug", e.target.value)}
+													required
+												/>
+											</div>
+										</div>
+										<div className="space-y-2">
+											<Label htmlFor="description">Description</Label>
+											<Textarea
+												id="description"
+												placeholder="A brief description of the category."
+												value={formData.description || ""}
+												onChange={(e) => handleInputChange("description", e.target.value)}
 											/>
-											<FormField
-												control={form.control}
-												name="image"
-												render={({ field }) => (
-													<FormItem>
-														<FormLabel>Category Image</FormLabel>
-														<FormControl>
-															<div>
-																{field.value ? (
-																	<div className="relative h-48 w-full">
-																		<Image
-																			src={field.value}
-																			alt="Category Image"
-																			fill
-																			className="rounded-md object-cover"
-																		/>
-																		<Button
-																			variant="destructive"
-																			size="icon"
-																			className="absolute top-2 right-2 h-6 w-6"
-																			onClick={() => field.onChange("")}
-																		>
-																			<X className="h-4 w-4" />
-																		</Button>
-																	</div>
-																) : (
-																	<div className="flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed">
-																		<input
-																			type="file"
-																			id="image-upload"
-																			className="hidden"
-																			accept="image/*"
-																			onChange={(e) =>
-																				handleImageUpload(e.target.files?.[0])
-																			}
-																			disabled={uploading}
-																		/>
-																		<label
-																			htmlFor="image-upload"
-																			className="flex h-full w-full cursor-pointer flex-col items-center justify-center"
-																		>
-																			{uploading ? (
-																				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-																			) : (
-																				<>
-																					<Upload className="mb-2 h-8 w-8 text-muted-foreground" />
-																					<p>Upload an image</p>
-																				</>
-																			)}
-																		</label>
-																	</div>
-																)}
-															</div>
-														</FormControl>
-														<FormMessage />
-													</FormItem>
+										</div>
+										<div className="space-y-2">
+											<Label>Category Image</Label>
+											<div>
+												{formData.image ? (
+													<div className="relative h-48 w-full">
+														<Image
+															src={formData.image}
+															alt="Category Image"
+															fill
+															className="rounded-md object-cover"
+														/>
+														<Button
+															type="button"
+															variant="destructive"
+															size="icon"
+															className="absolute top-2 right-2 h-6 w-6"
+															onClick={() => handleInputChange("image", "")}
+														>
+															<X className="h-4 w-4" />
+														</Button>
+													</div>
+												) : (
+													<div className="flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed">
+														<input
+															type="file"
+															id="image-upload"
+															className="hidden"
+															accept="image/*"
+															onChange={(e) =>
+																handleImageUpload(e.target.files?.[0])
+															}
+															disabled={uploading}
+														/>
+														<label
+															htmlFor="image-upload"
+															className="flex h-full w-full cursor-pointer flex-col items-center justify-center"
+														>
+															{uploading ? (
+																<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+															) : (
+																<>
+																	<Upload className="mb-2 h-8 w-8 text-muted-foreground" />
+																	<p>Upload an image</p>
+																</>
+															)}
+														</label>
+													</div>
 												)}
+											</div>
+										</div>
+									</CardContent>
+									<CardFooter>
+										<Button
+											type="submit"
+											disabled={updateCategoryMutation.isPending}
+										>
+											{updateCategoryMutation.isPending
+												? "Saving..."
+												: "Save Changes"}
+										</Button>
+									</CardFooter>
+								</Card>
+
+								<Card>
+									<CardHeader>
+										<CardTitle>Status</CardTitle>
+									</CardHeader>
+									<CardContent className="space-y-4">
+										<div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+											<div className="space-y-0.5">
+												<Label>Active</Label>
+												<p className="text-muted-foreground text-sm">
+													Inactive categories are hidden from the store.
+												</p>
+											</div>
+											<Switch
+												checked={formData.active}
+												onCheckedChange={(checked) => handleInputChange("active", checked)}
 											/>
-										</CardContent>
-										<CardFooter>
-											<Button
-												type="submit"
-												disabled={updateCategoryMutation.isPending}
-											>
-												{updateCategoryMutation.isPending
-													? "Saving..."
-													: "Save Changes"}
-											</Button>
-										</CardFooter>
-									</Card>
-								</form>
-							</Form>
+										</div>
+										<div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+											<div className="space-y-0.5">
+												<Label>Featured</Label>
+												<p className="text-muted-foreground text-sm">
+													Featured categories appear on the homepage.
+												</p>
+											</div>
+											<Switch
+												checked={formData.featured}
+												onCheckedChange={(checked) => handleInputChange("featured", checked)}
+											/>
+										</div>
+									</CardContent>
+								</Card>
+							</form>
 						</div>
 
 						<div className="space-y-8">
-							<Card>
-								<CardHeader>
-									<CardTitle>Status</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-4">
-									<FormField
-										control={form.control}
-										name="active"
-										render={({ field }) => (
-											<FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-												<div className="space-y-0.5">
-													<FormLabel>Active</FormLabel>
-													<FormDescription>
-														Inactive categories are hidden from the store.
-													</FormDescription>
-												</div>
-												<FormControl>
-													<Switch
-														checked={field.value}
-														onCheckedChange={field.onChange}
-													/>
-												</FormControl>
-											</FormItem>
-										)}
-									/>
-									<FormField
-										control={form.control}
-										name="featured"
-										render={({ field }) => (
-											<FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-												<div className="space-y-0.5">
-													<FormLabel>Featured</FormLabel>
-													<FormDescription>
-														Featured categories appear on the homepage.
-													</FormDescription>
-												</div>
-												<FormControl>
-													<Switch
-														checked={field.value}
-														onCheckedChange={field.onChange}
-													/>
-												</FormControl>
-											</FormItem>
-										)}
-									/>
-								</CardContent>
-							</Card>
 							<Card>
 								<CardHeader>
 									<CardTitle>Products</CardTitle>

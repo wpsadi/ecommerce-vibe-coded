@@ -52,35 +52,27 @@ export async function getAllProducts(options?: {
 				name: categories.name,
 				slug: categories.slug,
 			},
-			primaryImage: sql<string>`(
-        SELECT url 
-        FROM ${productImages} 
-        WHERE ${productImages.productId} = ${products.id} 
-        AND ${productImages.isPrimary} = true 
-        LIMIT 1
+			primaryImage: sql<string>`COALESCE(
+        (SELECT url FROM ${productImages} WHERE ${productImages.productId} = ${products.id} AND ${productImages.isPrimary} = true LIMIT 1),
+        ''
       )`.as("primaryImage"),
-			averageRating: sql<number>`(
-        SELECT COALESCE(AVG(rating), 0)::numeric(3,2)
-        FROM ${productReviews} 
-        WHERE ${productReviews.productId} = ${products.id} 
-        AND ${productReviews.approved} = true
-      )`.as("averageRating"),
-			reviewCount: sql<number>`(
-        SELECT COUNT(*)::int
-        FROM ${productReviews} 
-        WHERE ${productReviews.productId} = ${products.id} 
-        AND ${productReviews.approved} = true
-      )`.as("reviewCount"),
+			averageRating: sql<number>`COALESCE(
+        (SELECT AVG(rating) FROM ${productReviews} WHERE ${productReviews.productId} = ${products.id} AND ${productReviews.approved} = true),
+        0
+      )::numeric(3,2)`.as("averageRating"),
+			reviewCount: sql<number>`COALESCE(
+        (SELECT COUNT(*) FROM ${productReviews} WHERE ${productReviews.productId} = ${products.id} AND ${productReviews.approved} = true),
+        0
+      )::int`.as("reviewCount"),
 			images: sql<
 				Array<{
 					id: string;
 					url: string;
 					isPrimary: boolean;
 				}>
-			>`(
-        SELECT json_agg(json_build_object('id', id, 'url', url, 'isPrimary', is_primary))
-        FROM ${productImages}
-        WHERE ${productImages.productId} = ${products.id}
+			>`COALESCE(
+        (SELECT json_agg(json_build_object('id', id, 'url', url, 'isPrimary', "isPrimary")) FROM ${productImages} WHERE ${productImages.productId} = ${products.id}),
+        '[]'::json
       )`.as("images"),
 		})
 		.from(products)

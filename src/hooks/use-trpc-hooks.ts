@@ -827,8 +827,8 @@ export const useCouponByCode = (code: string) => {
 // COMBINED HOOKS FOR COMPLEX OPERATIONS
 // =============================================================================
 
-export const useProductWithDetails = (slug: string) => {
-	const productQuery = useProductBySlug(slug);
+export const useProductWithDetails = (id: string) => {
+	const productQuery = useProduct(id);
 	const imagesQuery = useProductImages(productQuery.data?.id || "");
 	const reviewsQuery = useProductReviews(productQuery.data?.id || "");
 
