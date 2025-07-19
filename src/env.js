@@ -15,9 +15,10 @@ export const env = createEnv({
 		NODE_ENV: z
 			.enum(["development", "test", "production"])
 			.default("development"),
-		BLOB_READ_WRITE_TOKEN: process.env.NODE_ENV === "production"
-			? z.string().min(1)
-			: z.string().optional(),
+		BLOB_READ_WRITE_TOKEN:
+			process.env.NODE_ENV === "production"
+				? z.string().min(1)
+				: z.string().optional(),
 	},
 
 	/**

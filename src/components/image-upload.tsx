@@ -56,21 +56,24 @@ export function ImageUpload({
 					// Generate unique filename
 					const timestamp = Date.now();
 					const randomId = Math.random().toString(36).substring(2, 15);
-					const fileExtension = file.name.split('.').pop() || 'jpg';
+					const fileExtension = file.name.split(".").pop() || "jpg";
 					const filename = `product-${timestamp}-${randomId}.${fileExtension}`;
 
 					// Upload to Vercel Blob
-					const uploadResponse = await fetch(`/api/upload?filename=${encodeURIComponent(filename)}`, {
-						method: 'POST',
-						body: file,
-						headers: {
-							'Content-Type': file.type,
+					const uploadResponse = await fetch(
+						`/api/upload?filename=${encodeURIComponent(filename)}`,
+						{
+							method: "POST",
+							body: file,
+							headers: {
+								"Content-Type": file.type,
+							},
 						},
-					});
+					);
 
 					if (!uploadResponse.ok) {
 						const errorData = await uploadResponse.json();
-						throw new Error(errorData.error || 'Upload failed');
+						throw new Error(errorData.error || "Upload failed");
 					}
 
 					const uploadData = await uploadResponse.json();
@@ -81,7 +84,7 @@ export function ImageUpload({
 
 				toast.success(`${newImages.length} image(s) uploaded successfully`);
 			} catch (error) {
-				console.error('Upload error:', error);
+				console.error("Upload error:", error);
 				toast.error("Failed to upload images. Please try again.");
 			} finally {
 				setUploading(false);
