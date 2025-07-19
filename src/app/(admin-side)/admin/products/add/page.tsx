@@ -21,13 +21,12 @@ import { useCategories, useCreateProduct } from "@/hooks/use-trpc-hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 const productSchema = z.object({
 	name: z.string().min(1, "Name is required"),
-	slug: z.string().optional(), // Will be generated from name
 	description: z.string().min(1, "Description is required"),
 	price: z.string().min(1, "Price is required"),
 	originalPrice: z.string().optional(),
@@ -46,7 +45,6 @@ export default function AddProductPage() {
 		handleSubmit,
 		setValue,
 		watch,
-		control,
 		formState: { errors },
 	} = useForm({
 		resolver: zodResolver(productSchema),
@@ -133,7 +131,7 @@ export default function AddProductPage() {
 										<Controller
 											name="categoryId"
 											control={control}
-											render={({ field }) => (
+											render={({ field }: { field: ControllerRenderProps<typeof productSchema, "categoryId"> }) => (
 												<Select
 													onValueChange={field.onChange}
 													defaultValue={field.value}
@@ -292,10 +290,10 @@ export default function AddProductPage() {
 								<div className="flex gap-4">
 									<Button
 										type="submit"
-										disabled={createProduct.isLoading}
+										disabled={createProduct.isPending}
 										className="flex-1"
 									>
-										{createProduct.isLoading
+										{createProduct.isPending
 											? "Adding Product..."
 											: "Add Product"}
 									</Button>

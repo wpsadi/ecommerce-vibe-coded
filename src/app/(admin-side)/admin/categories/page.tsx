@@ -45,7 +45,7 @@ export default function AdminCategoriesPage() {
 	const [searchQuery, setSearchQuery] = useState("");
 
 	// tRPC Hooks
-	const { data: categories, isLoading } = useCategories();
+	const { data: categories, isPending } = useCategories();
 	const deleteCategory = useDeleteCategory();
 	const toggleFeatured = useToggleCategoryFeatured();
 
@@ -60,7 +60,7 @@ export default function AdminCategoriesPage() {
 		categories?.filter(
 			(category) =>
 				category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-								(category.description || '').toLowerCase().includes(searchQuery.toLowerCase()),
+				category.description.toLowerCase().includes(searchQuery.toLowerCase()),
 		) || [];
 
 	const handleDeleteCategory = async (
@@ -140,7 +140,7 @@ export default function AdminCategoriesPage() {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{isLoading ? (
+							{isPending ? (
 								<TableRow>
 									<TableCell colSpan={4} className="py-8 text-center">
 										Loading categories...
