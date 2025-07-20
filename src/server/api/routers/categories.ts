@@ -21,7 +21,9 @@ export const categoriesRouter = createTRPCRouter({
 				acc[cat.id] = { ...cat, productCount: 0 };
 			}
 
-			if (row.product !== undefined) acc[cat.id].productCount += 1;
+			if (row.product !== null) {
+				acc[cat.id]!.productCount += 1;
+			}
 
 			return acc;
 		}, {} as Record<string, typeof categories.$inferSelect & { productCount: number }>);
@@ -44,7 +46,9 @@ export const categoriesRouter = createTRPCRouter({
 				acc[cat.id] = { ...cat, productCount: 0 };
 			}
 
-			if (row.product != null) acc[cat.id].productCount += 1;
+			if (row.product !== null) {
+				acc[cat.id]!.productCount += 1;
+			}
 
 			return acc;
 		}, {} as Record<string, typeof categories.$inferSelect & { productCount: number }>);
@@ -52,14 +56,14 @@ export const categoriesRouter = createTRPCRouter({
 		return Object.values(grouped);
 	}),
 
-	getById: publicProcedure.input(z.string()).query(async ({ input }) => {
-		const [found] = await db.select().from(categories).where(eq(categories.id, input));
+	getById: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+		const [found] = await db.select().from(categories).where(eq(categories.id, input.id));
 		if (!found) throw new TRPCError({ code: "NOT_FOUND" });
 		return found;
 	}),
 
-	getBySlug: publicProcedure.input(z.string()).query(async ({ input }) => {
-		const [found] = await db.select().from(categories).where(eq(categories.slug, input));
+	getBySlug: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ input }) => {
+		const [found] = await db.select().from(categories).where(eq(categories.slug, input.slug));
 		if (!found) throw new TRPCError({ code: "NOT_FOUND" });
 		return found;
 	}),
@@ -70,11 +74,12 @@ export const categoriesRouter = createTRPCRouter({
 				name: z.string(),
 				slug: z.string(),
 				description: z.string().optional(),
+				icon: z.string().optional(),
 				image: z.string().optional(),
 				featured: z.boolean().optional(),
 				sortOrder: z.number().optional(),
-				seoTitle: z.string().optional(),
-				seoDescription: z.string().optional(),
+				metaTitle: z.string().optional(),
+				metaDescription: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -92,11 +97,12 @@ export const categoriesRouter = createTRPCRouter({
 				name: z.string(),
 				slug: z.string(),
 				description: z.string().optional(),
+				icon: z.string().optional(),
 				image: z.string().optional(),
 				featured: z.boolean().optional(),
 				sortOrder: z.number().optional(),
-				seoTitle: z.string().optional(),
-				seoDescription: z.string().optional(),
+				metaTitle: z.string().optional(),
+				metaDescription: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -108,22 +114,22 @@ export const categoriesRouter = createTRPCRouter({
 			return db.update(categories).set(data).where(eq(categories.id, id));
 		}),
 
-	delete: protectedProcedure.input(z.string()).mutation(async ({ input, ctx }) => {
+	delete: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ input, ctx }) => {
 		if (ctx.session.user.role !== "admin") {
 			throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
 		}
 
-		return db.delete(categories).where(eq(categories.id, input));
+		return db.delete(categories).where(eq(categories.id, input.id));
 	}),
 
-	toggleFeatured: protectedProcedure.input(z.string()).mutation(async ({ input, ctx }) => {
+	toggleFeatured: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ input, ctx }) => {
 		if (ctx.session.user.role !== "admin") {
 			throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
 		}
 
-		const [found] = await db.select().from(categories).where(eq(categories.id, input));
+		const [found] = await db.select().from(categories).where(eq(categories.id, input.id));
 		if (!found) throw new TRPCError({ code: "NOT_FOUND" });
 
-		return db.update(categories).set({ featured: !found.featured }).where(eq(categories.id, input));
+		return db.update(categories).set({ featured: !found.featured }).where(eq(categories.id, input.id));
 	}),
 });
