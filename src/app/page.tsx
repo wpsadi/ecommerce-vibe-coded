@@ -52,7 +52,7 @@ export default function HomePage() {
 										</Card>
 									))
 								: featuredCategories?.map((category) => (
-										<Link key={category.id} href={`/category/${category.slug}`}>
+										<Link key={category.id} href={`/category/${category.id}`}>
 											<Card className="cursor-pointer transition-shadow hover:shadow-md">
 												<CardContent className="p-6 text-center">
 													{category.image ? (
