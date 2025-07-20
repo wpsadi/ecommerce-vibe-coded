@@ -1,7 +1,7 @@
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { mockProducts } from "@/lib/mock-data";
+import { MockDatabase } from "@/lib/mock-database";
 
 // Mock cart storage (in a real app, this would be in session/database)
 // Using Map for better performance and to simulate database behavior
@@ -24,7 +24,7 @@ function getUserCart(userId: string = "anonymous") {
 
 // Helper function to find product details
 function getProductDetails(productId: string) {
-	return mockProducts.find(p => p.id === productId);
+	return MockDatabase.findProductById(productId);
 }
 
 export const cartRouter = createTRPCRouter({

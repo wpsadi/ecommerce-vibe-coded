@@ -27,6 +27,7 @@ import {
 	inArray
 } from "drizzle-orm";
 import { mockProducts } from "@/lib/mock-data";
+import { MockDatabase } from "@/lib/mock-database";
 
 const productFilterSchema = z.object({
 	categoryId: z.string().optional(),
@@ -130,8 +131,8 @@ export const productsRouter = createTRPCRouter({
 						throw new Error("Database not available");
 					},
 					() => {
-						// Fallback to mock data
-						let filteredProducts = [...mockProducts];
+						// Fallback to persistent mock data
+						let filteredProducts = MockDatabase.getProducts();
 
 						// Apply filters
 						if (input.categoryId) {
@@ -255,7 +256,7 @@ export const productsRouter = createTRPCRouter({
 						return product[0];
 					},
 					() => {
-						const product = mockProducts.find(p => p.id === input.id);
+						const product = MockDatabase.findProductById(input.id);
 						if (!product) {
 							throw new TRPCError({
 								code: "NOT_FOUND",
@@ -326,7 +327,7 @@ export const productsRouter = createTRPCRouter({
 					},
 					() => {
 						// For mock data, use id as slug
-						const product = mockProducts.find(p => p.id === input.slug);
+						const product = MockDatabase.findProductById(input.slug);
 						if (!product) {
 							throw new TRPCError({
 								code: "NOT_FOUND",
@@ -389,7 +390,7 @@ export const productsRouter = createTRPCRouter({
 						return images;
 					},
 					() => {
-						const product = mockProducts.find(p => p.id === input.productId);
+						const product = MockDatabase.findProductById(input.productId);
 						if (!product) {
 							return [];
 						}
@@ -435,7 +436,7 @@ export const productsRouter = createTRPCRouter({
 						throw new Error("Database not available");
 					},
 					() => {
-						const product = mockProducts.find(p => p.id === input.productId);
+						const product = MockDatabase.findProductById(input.productId);
 						if (!product) {
 							return [];
 						}
@@ -500,27 +501,41 @@ export const productsRouter = createTRPCRouter({
 						return newProduct[0];
 					},
 					() => {
-						// Fallback: For mock data, we'll return success but note it's not persisted
-						console.warn("Product create: Database not available, changes will not persist");
-						
-						const newProduct = {
-							id: crypto.randomUUID(),
+						// Fallback: Create using persistent mock database
+						const newProduct = MockDatabase.createProduct({
 							name: input.name,
-							slug: input.slug,
+							price: Number(input.price),
+							originalPrice: input.originalPrice ? Number(input.originalPrice) : undefined,
+							image: "/placeholder.svg",
+							category: "General", // Will be updated based on categoryId
+							categoryId: input.categoryId,
+							rating: 0,
+							reviews: 0,
 							description: input.description,
+							specifications: input.specifications,
+							stock: input.stock,
+							discount: 0,
+							featured: input.featured,
+						});
+
+						return {
+							id: newProduct.id,
+							name: newProduct.name,
+							slug: newProduct.id,
+							description: newProduct.description,
 							shortDescription: input.shortDescription || null,
 							sku: input.sku || null,
-							price: input.price,
-							originalPrice: input.originalPrice || null,
+							price: newProduct.price.toString(),
+							originalPrice: newProduct.originalPrice?.toString() || null,
 							costPrice: input.costPrice || null,
-							categoryId: input.categoryId,
-							stock: input.stock,
+							categoryId: newProduct.categoryId,
+							stock: newProduct.stock,
 							lowStockThreshold: input.lowStockThreshold,
 							weight: input.weight || null,
 							dimensions: input.dimensions || null,
-							specifications: input.specifications,
+							specifications: newProduct.specifications,
 							tags: input.tags,
-							featured: input.featured,
+							featured: newProduct.featured,
 							active: input.active,
 							digital: input.digital,
 							trackQuantity: input.trackQuantity,
@@ -530,8 +545,6 @@ export const productsRouter = createTRPCRouter({
 							createdAt: new Date(),
 							updatedAt: new Date(),
 						};
-
-						return newProduct;
 					}
 				);
 			} catch (error) {
@@ -584,18 +597,38 @@ export const productsRouter = createTRPCRouter({
 						return updatedProduct[0];
 					},
 					() => {
-						// Fallback: For mock data, we'll return success but note it's not persisted
-						console.warn("Product update: Database not available, changes will not persist");
+						// Fallback: Update using persistent mock database
+						const { id, ...updateData } = input;
+						
+						const updates: Partial<any> = {};
+						if (updateData.name) updates.name = updateData.name;
+						if (updateData.description) updates.description = updateData.description;
+						if (updateData.price) updates.price = Number(updateData.price);
+						if (updateData.originalPrice) updates.originalPrice = Number(updateData.originalPrice);
+						if (updateData.categoryId) updates.categoryId = updateData.categoryId;
+						if (updateData.stock !== undefined) updates.stock = updateData.stock;
+						if (updateData.featured !== undefined) updates.featured = updateData.featured;
+						if (updateData.specifications) updates.specifications = updateData.specifications;
+
+						const updatedProduct = MockDatabase.updateProduct(id, updates);
+						
+						if (!updatedProduct) {
+							throw new TRPCError({
+								code: "NOT_FOUND",
+								message: "Product not found",
+							});
+						}
+
 						return {
-							id: input.id,
-							name: input.name || "Updated Product",
-							slug: input.slug || input.id,
-							description: input.description || "Updated description",
-							price: input.price || "0",
-							categoryId: input.categoryId || "general",
-							stock: input.stock || 0,
-							active: input.active !== undefined ? input.active : true,
-							featured: input.featured !== undefined ? input.featured : false,
+							id: updatedProduct.id,
+							name: updatedProduct.name,
+							slug: updatedProduct.id,
+							description: updatedProduct.description,
+							price: updatedProduct.price.toString(),
+							categoryId: updatedProduct.categoryId,
+							stock: updatedProduct.stock,
+							featured: updatedProduct.featured || false,
+							active: true,
 							updatedAt: new Date(),
 							createdAt: new Date(),
 						};
@@ -637,12 +670,10 @@ export const productsRouter = createTRPCRouter({
 						return { success: true, deletedProduct: deletedProduct[0] };
 					},
 					() => {
-						// Fallback: For mock data, we'll return success but note it's not persisted
-						console.warn("Product delete: Database not available, changes will not persist");
+						// Fallback: Delete using persistent mock database
+						const deletedProduct = MockDatabase.deleteProduct(input.id);
 						
-						// Check if product exists in mock data
-						const product = mockProducts.find(p => p.id === input.id);
-						if (!product) {
+						if (!deletedProduct) {
 							throw new TRPCError({
 								code: "NOT_FOUND",
 								message: "Product not found",
@@ -652,8 +683,8 @@ export const productsRouter = createTRPCRouter({
 						return { 
 							success: true, 
 							deletedProduct: {
-								id: product.id,
-								name: product.name,
+								id: deletedProduct.id,
+								name: deletedProduct.name,
 							}
 						};
 					}

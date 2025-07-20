@@ -10,7 +10,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { type Product, categories, mockProducts } from "@/lib/mock-data";
+import { type Product, categories } from "@/lib/mock-data";
+import { MockDatabase } from "@/lib/mock-database";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -30,7 +31,7 @@ export default function CategoryPage() {
 
 		setTimeout(() => {
 			// Filter by categoryId instead of category name for better accuracy
-			const filtered = mockProducts.filter(
+			const filtered = MockDatabase.getProducts().filter(
 				(product) => product.categoryId === categoryId,
 			);
 
