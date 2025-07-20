@@ -40,11 +40,6 @@ export function ProductCard({ product }: ProductCardProps) {
 	const { data: isInWishlist } = useIsInWishlist(product.id);
 
 	const handleAddToCart = async () => {
-		if (!user) {
-			toast.error("Please login to add items to cart");
-			return;
-		}
-
 		try {
 			await addToCart.mutateAsync({
 				productId: product.id,
