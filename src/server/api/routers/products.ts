@@ -2,7 +2,7 @@ import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/
 import { db } from "@/server/db";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { and, asc, desc, eq, ilike, sql, count, avg } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, sql, count, avg, inArray } from "drizzle-orm";
 import { products, productImages, productReviews, categories } from "@/server/db/schema";
 
 export const productsRouter = createTRPCRouter({
@@ -84,6 +84,9 @@ export const productsRouter = createTRPCRouter({
         .limit(limit)
         .offset(offset);
 
+      // Get review stats for each product
+      const productIds = productsData.map(p => p.product.id);
+      
       // Get all images for each product
       let allImages: { productId: string; url: string; isPrimary: boolean; sortOrder: number }[] = [];
       
@@ -96,13 +99,10 @@ export const productsRouter = createTRPCRouter({
             sortOrder: productImages.sortOrder,
           })
           .from(productImages)
-          .where(sql`${productImages.productId} = ANY(${productIds})`)
+          .where(inArray(productImages.productId, productIds))
           .orderBy(asc(productImages.sortOrder), desc(productImages.isPrimary));
       }
 
-      // Get review stats for each product
-      const productIds = productsData.map(p => p.product.id);
-      
       let reviewStats: { productId: string; averageRating: number; reviewCount: number }[] = [];
       
       if (productIds.length > 0) {
@@ -115,7 +115,7 @@ export const productsRouter = createTRPCRouter({
           .from(productReviews)
           .where(
             and(
-              sql`${productReviews.productId} = ANY(${productIds})`,
+              inArray(productReviews.productId, productIds),
               eq(productReviews.approved, true)
             )
           )
@@ -346,7 +346,7 @@ export const productsRouter = createTRPCRouter({
       const result = await db
         .update(products)
         .set({ categoryId: input.categoryId })
-        .where(sql`${products.id} = ANY(${input.productIds})`)
+        .where(inArray(products.id, input.productIds))
         .returning();
 
       return result;
@@ -360,9 +360,9 @@ export const productsRouter = createTRPCRouter({
         description: z.string().min(1),
         shortDescription: z.string().optional(),
         sku: z.string().optional(),
-        price: z.string().transform(val => parseFloat(val)),
-        originalPrice: z.string().optional().transform(val => val ? parseFloat(val) : undefined),
-        costPrice: z.string().optional().transform(val => val ? parseFloat(val) : undefined),
+        price: z.string(),
+        originalPrice: z.string().optional(),
+        costPrice: z.string().optional(),
         categoryId: z.string(),
         stock: z.number().min(0).default(0),
         lowStockThreshold: z.number().min(0).default(10),
@@ -423,9 +423,9 @@ export const productsRouter = createTRPCRouter({
         description: z.string().min(1),
         shortDescription: z.string().optional(),
         sku: z.string().optional(),
-        price: z.string().transform(val => parseFloat(val)),
-        originalPrice: z.string().optional().transform(val => val ? parseFloat(val) : undefined),
-        costPrice: z.string().optional().transform(val => val ? parseFloat(val) : undefined),
+        price: z.string(),
+        originalPrice: z.string().optional(),
+        costPrice: z.string().optional(),
         categoryId: z.string(),
         stock: z.number().min(0),
         lowStockThreshold: z.number().min(0).default(10),

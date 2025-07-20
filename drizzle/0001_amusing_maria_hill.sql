@@ -1,1 +1,0 @@
-ALTER TABLE "ecommerce_user" ADD COLUMN "password" varchar(255);

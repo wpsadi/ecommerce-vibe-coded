@@ -1,5 +1,9 @@
-import { db } from "../src/server/db/index.ts";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import Database from "better-sqlite3";
 import { categories, products, productImages } from "../src/server/db/schema.ts";
+
+const sqlite = new Database("dev.db");
+const db = drizzle(sqlite);
 
 async function seed() {
 	console.log("🌱 Seeding database...");
@@ -146,6 +150,7 @@ async function seed() {
 	console.log("✅ Product images seeded");
 
 	console.log("🎉 Database seeded successfully!");
+	sqlite.close();
 }
 
 seed().catch(console.error);

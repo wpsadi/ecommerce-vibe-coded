@@ -1,2575 +1,2352 @@
 {
-	"id": "3a94ea55-f7ac-4d9a-b6a0-8795f2264ed8",
-	"prevId": "00000000-0000-0000-0000-000000000000",
-	"version": "7",
-	"dialect": "postgresql",
-	"tables": {
-		"public.ecommerce_account": {
-			"name": "ecommerce_account",
-			"schema": "",
-			"columns": {
-				"userId": {
-					"name": "userId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"type": {
-					"name": "type",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"provider": {
-					"name": "provider",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"providerAccountId": {
-					"name": "providerAccountId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"refresh_token": {
-					"name": "refresh_token",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"access_token": {
-					"name": "access_token",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"expires_at": {
-					"name": "expires_at",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"token_type": {
-					"name": "token_type",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"scope": {
-					"name": "scope",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"id_token": {
-					"name": "id_token",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"session_state": {
-					"name": "session_state",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {
-				"account_user_id_idx": {
-					"name": "account_user_id_idx",
-					"columns": [
-						{
-							"expression": "userId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {
-				"ecommerce_account_userId_ecommerce_user_id_fk": {
-					"name": "ecommerce_account_userId_ecommerce_user_id_fk",
-					"tableFrom": "ecommerce_account",
-					"tableTo": "ecommerce_user",
-					"columnsFrom": ["userId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {
-				"ecommerce_account_provider_providerAccountId_pk": {
-					"name": "ecommerce_account_provider_providerAccountId_pk",
-					"columns": ["provider", "providerAccountId"]
-				}
-			},
-			"uniqueConstraints": {},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_address": {
-			"name": "ecommerce_address",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"userId": {
-					"name": "userId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"type": {
-					"name": "type",
-					"type": "varchar(50)",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'shipping'"
-				},
-				"firstName": {
-					"name": "firstName",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"lastName": {
-					"name": "lastName",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"company": {
-					"name": "company",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"phone": {
-					"name": "phone",
-					"type": "varchar(20)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"addressLine1": {
-					"name": "addressLine1",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"addressLine2": {
-					"name": "addressLine2",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"city": {
-					"name": "city",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"state": {
-					"name": "state",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"postalCode": {
-					"name": "postalCode",
-					"type": "varchar(20)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"country": {
-					"name": "country",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'India'"
-				},
-				"isDefault": {
-					"name": "isDefault",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				},
-				"updatedAt": {
-					"name": "updatedAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {
-				"address_user_idx": {
-					"name": "address_user_idx",
-					"columns": [
-						{
-							"expression": "userId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"address_type_idx": {
-					"name": "address_type_idx",
-					"columns": [
-						{
-							"expression": "type",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"address_default_idx": {
-					"name": "address_default_idx",
-					"columns": [
-						{
-							"expression": "isDefault",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {
-				"ecommerce_address_userId_ecommerce_user_id_fk": {
-					"name": "ecommerce_address_userId_ecommerce_user_id_fk",
-					"tableFrom": "ecommerce_address",
-					"tableTo": "ecommerce_user",
-					"columnsFrom": ["userId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_cart_item": {
-			"name": "ecommerce_cart_item",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"userId": {
-					"name": "userId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"productId": {
-					"name": "productId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"quantity": {
-					"name": "quantity",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"default": 1
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				},
-				"updatedAt": {
-					"name": "updatedAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {
-				"cart_item_user_idx": {
-					"name": "cart_item_user_idx",
-					"columns": [
-						{
-							"expression": "userId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"cart_item_product_idx": {
-					"name": "cart_item_product_idx",
-					"columns": [
-						{
-							"expression": "productId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"cart_item_user_product_unique": {
-					"name": "cart_item_user_product_unique",
-					"columns": [
-						{
-							"expression": "userId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						},
-						{
-							"expression": "productId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {
-				"ecommerce_cart_item_userId_ecommerce_user_id_fk": {
-					"name": "ecommerce_cart_item_userId_ecommerce_user_id_fk",
-					"tableFrom": "ecommerce_cart_item",
-					"tableTo": "ecommerce_user",
-					"columnsFrom": ["userId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"ecommerce_cart_item_productId_ecommerce_product_id_fk": {
-					"name": "ecommerce_cart_item_productId_ecommerce_product_id_fk",
-					"tableFrom": "ecommerce_cart_item",
-					"tableTo": "ecommerce_product",
-					"columnsFrom": ["productId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_category": {
-			"name": "ecommerce_category",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"name": {
-					"name": "name",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"slug": {
-					"name": "slug",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"description": {
-					"name": "description",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"icon": {
-					"name": "icon",
-					"type": "varchar(10)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"image": {
-					"name": "image",
-					"type": "varchar(500)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"featured": {
-					"name": "featured",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"active": {
-					"name": "active",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"sortOrder": {
-					"name": "sortOrder",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"default": 0
-				},
-				"metaTitle": {
-					"name": "metaTitle",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"metaDescription": {
-					"name": "metaDescription",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				},
-				"updatedAt": {
-					"name": "updatedAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {
-				"category_slug_idx": {
-					"name": "category_slug_idx",
-					"columns": [
-						{
-							"expression": "slug",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"category_featured_idx": {
-					"name": "category_featured_idx",
-					"columns": [
-						{
-							"expression": "featured",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"category_active_idx": {
-					"name": "category_active_idx",
-					"columns": [
-						{
-							"expression": "active",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"category_sort_order_idx": {
-					"name": "category_sort_order_idx",
-					"columns": [
-						{
-							"expression": "sortOrder",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {
-				"ecommerce_category_slug_unique": {
-					"name": "ecommerce_category_slug_unique",
-					"nullsNotDistinct": false,
-					"columns": ["slug"]
-				}
-			},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_coupon_usage": {
-			"name": "ecommerce_coupon_usage",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"couponId": {
-					"name": "couponId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"userId": {
-					"name": "userId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"orderId": {
-					"name": "orderId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"discountAmount": {
-					"name": "discountAmount",
-					"type": "numeric(10, 2)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				}
-			},
-			"indexes": {
-				"coupon_usage_coupon_idx": {
-					"name": "coupon_usage_coupon_idx",
-					"columns": [
-						{
-							"expression": "couponId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"coupon_usage_user_idx": {
-					"name": "coupon_usage_user_idx",
-					"columns": [
-						{
-							"expression": "userId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"coupon_usage_order_idx": {
-					"name": "coupon_usage_order_idx",
-					"columns": [
-						{
-							"expression": "orderId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {
-				"ecommerce_coupon_usage_couponId_ecommerce_coupon_id_fk": {
-					"name": "ecommerce_coupon_usage_couponId_ecommerce_coupon_id_fk",
-					"tableFrom": "ecommerce_coupon_usage",
-					"tableTo": "ecommerce_coupon",
-					"columnsFrom": ["couponId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"ecommerce_coupon_usage_userId_ecommerce_user_id_fk": {
-					"name": "ecommerce_coupon_usage_userId_ecommerce_user_id_fk",
-					"tableFrom": "ecommerce_coupon_usage",
-					"tableTo": "ecommerce_user",
-					"columnsFrom": ["userId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"ecommerce_coupon_usage_orderId_ecommerce_order_id_fk": {
-					"name": "ecommerce_coupon_usage_orderId_ecommerce_order_id_fk",
-					"tableFrom": "ecommerce_coupon_usage",
-					"tableTo": "ecommerce_order",
-					"columnsFrom": ["orderId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_coupon": {
-			"name": "ecommerce_coupon",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"code": {
-					"name": "code",
-					"type": "varchar(50)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"name": {
-					"name": "name",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"description": {
-					"name": "description",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"type": {
-					"name": "type",
-					"type": "varchar(50)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"value": {
-					"name": "value",
-					"type": "numeric(10, 2)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"minimumAmount": {
-					"name": "minimumAmount",
-					"type": "numeric(10, 2)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"maximumDiscount": {
-					"name": "maximumDiscount",
-					"type": "numeric(10, 2)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"usageLimit": {
-					"name": "usageLimit",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"usageCount": {
-					"name": "usageCount",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"default": 0
-				},
-				"userUsageLimit": {
-					"name": "userUsageLimit",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"default": 1
-				},
-				"active": {
-					"name": "active",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"startsAt": {
-					"name": "startsAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"expiresAt": {
-					"name": "expiresAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				},
-				"updatedAt": {
-					"name": "updatedAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {
-				"coupon_code_idx": {
-					"name": "coupon_code_idx",
-					"columns": [
-						{
-							"expression": "code",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"coupon_active_idx": {
-					"name": "coupon_active_idx",
-					"columns": [
-						{
-							"expression": "active",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"coupon_expires_at_idx": {
-					"name": "coupon_expires_at_idx",
-					"columns": [
-						{
-							"expression": "expiresAt",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {
-				"ecommerce_coupon_code_unique": {
-					"name": "ecommerce_coupon_code_unique",
-					"nullsNotDistinct": false,
-					"columns": ["code"]
-				}
-			},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_notification": {
-			"name": "ecommerce_notification",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"userId": {
-					"name": "userId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"type": {
-					"name": "type",
-					"type": "varchar(50)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"title": {
-					"name": "title",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"message": {
-					"name": "message",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"data": {
-					"name": "data",
-					"type": "jsonb",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"read": {
-					"name": "read",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				}
-			},
-			"indexes": {
-				"notification_user_idx": {
-					"name": "notification_user_idx",
-					"columns": [
-						{
-							"expression": "userId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"notification_type_idx": {
-					"name": "notification_type_idx",
-					"columns": [
-						{
-							"expression": "type",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"notification_read_idx": {
-					"name": "notification_read_idx",
-					"columns": [
-						{
-							"expression": "read",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"notification_created_at_idx": {
-					"name": "notification_created_at_idx",
-					"columns": [
-						{
-							"expression": "createdAt",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {
-				"ecommerce_notification_userId_ecommerce_user_id_fk": {
-					"name": "ecommerce_notification_userId_ecommerce_user_id_fk",
-					"tableFrom": "ecommerce_notification",
-					"tableTo": "ecommerce_user",
-					"columnsFrom": ["userId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_order_item": {
-			"name": "ecommerce_order_item",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"orderId": {
-					"name": "orderId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"productId": {
-					"name": "productId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"productName": {
-					"name": "productName",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"productSku": {
-					"name": "productSku",
-					"type": "varchar(100)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"productImage": {
-					"name": "productImage",
-					"type": "varchar(500)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"quantity": {
-					"name": "quantity",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"unitPrice": {
-					"name": "unitPrice",
-					"type": "numeric(10, 2)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"totalPrice": {
-					"name": "totalPrice",
-					"type": "numeric(10, 2)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				}
-			},
-			"indexes": {
-				"order_item_order_idx": {
-					"name": "order_item_order_idx",
-					"columns": [
-						{
-							"expression": "orderId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"order_item_product_idx": {
-					"name": "order_item_product_idx",
-					"columns": [
-						{
-							"expression": "productId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {
-				"ecommerce_order_item_orderId_ecommerce_order_id_fk": {
-					"name": "ecommerce_order_item_orderId_ecommerce_order_id_fk",
-					"tableFrom": "ecommerce_order_item",
-					"tableTo": "ecommerce_order",
-					"columnsFrom": ["orderId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"ecommerce_order_item_productId_ecommerce_product_id_fk": {
-					"name": "ecommerce_order_item_productId_ecommerce_product_id_fk",
-					"tableFrom": "ecommerce_order_item",
-					"tableTo": "ecommerce_product",
-					"columnsFrom": ["productId"],
-					"columnsTo": ["id"],
-					"onDelete": "restrict",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_order_status_history": {
-			"name": "ecommerce_order_status_history",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"orderId": {
-					"name": "orderId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"status": {
-					"name": "status",
-					"type": "varchar(50)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"comment": {
-					"name": "comment",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"notifyCustomer": {
-					"name": "notifyCustomer",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"createdBy": {
-					"name": "createdBy",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				}
-			},
-			"indexes": {
-				"order_status_history_order_idx": {
-					"name": "order_status_history_order_idx",
-					"columns": [
-						{
-							"expression": "orderId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"order_status_history_status_idx": {
-					"name": "order_status_history_status_idx",
-					"columns": [
-						{
-							"expression": "status",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"order_status_history_created_at_idx": {
-					"name": "order_status_history_created_at_idx",
-					"columns": [
-						{
-							"expression": "createdAt",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {
-				"ecommerce_order_status_history_orderId_ecommerce_order_id_fk": {
-					"name": "ecommerce_order_status_history_orderId_ecommerce_order_id_fk",
-					"tableFrom": "ecommerce_order_status_history",
-					"tableTo": "ecommerce_order",
-					"columnsFrom": ["orderId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"ecommerce_order_status_history_createdBy_ecommerce_user_id_fk": {
-					"name": "ecommerce_order_status_history_createdBy_ecommerce_user_id_fk",
-					"tableFrom": "ecommerce_order_status_history",
-					"tableTo": "ecommerce_user",
-					"columnsFrom": ["createdBy"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_order": {
-			"name": "ecommerce_order",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"orderNumber": {
-					"name": "orderNumber",
-					"type": "varchar(50)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"userId": {
-					"name": "userId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"status": {
-					"name": "status",
-					"type": "varchar(50)",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'pending'"
-				},
-				"paymentStatus": {
-					"name": "paymentStatus",
-					"type": "varchar(50)",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'pending'"
-				},
-				"paymentMethod": {
-					"name": "paymentMethod",
-					"type": "varchar(50)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"paymentId": {
-					"name": "paymentId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"subtotal": {
-					"name": "subtotal",
-					"type": "numeric(10, 2)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"taxAmount": {
-					"name": "taxAmount",
-					"type": "numeric(10, 2)",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'0'"
-				},
-				"shippingAmount": {
-					"name": "shippingAmount",
-					"type": "numeric(10, 2)",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'0'"
-				},
-				"discountAmount": {
-					"name": "discountAmount",
-					"type": "numeric(10, 2)",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'0'"
-				},
-				"totalAmount": {
-					"name": "totalAmount",
-					"type": "numeric(10, 2)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"shippingAddress": {
-					"name": "shippingAddress",
-					"type": "jsonb",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"billingAddress": {
-					"name": "billingAddress",
-					"type": "jsonb",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"trackingNumber": {
-					"name": "trackingNumber",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"estimatedDelivery": {
-					"name": "estimatedDelivery",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"deliveredAt": {
-					"name": "deliveredAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"customerNotes": {
-					"name": "customerNotes",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"adminNotes": {
-					"name": "adminNotes",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				},
-				"updatedAt": {
-					"name": "updatedAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {
-				"order_number_idx": {
-					"name": "order_number_idx",
-					"columns": [
-						{
-							"expression": "orderNumber",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"order_user_idx": {
-					"name": "order_user_idx",
-					"columns": [
-						{
-							"expression": "userId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"order_status_idx": {
-					"name": "order_status_idx",
-					"columns": [
-						{
-							"expression": "status",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"order_payment_status_idx": {
-					"name": "order_payment_status_idx",
-					"columns": [
-						{
-							"expression": "paymentStatus",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"order_created_at_idx": {
-					"name": "order_created_at_idx",
-					"columns": [
-						{
-							"expression": "createdAt",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {
-				"ecommerce_order_userId_ecommerce_user_id_fk": {
-					"name": "ecommerce_order_userId_ecommerce_user_id_fk",
-					"tableFrom": "ecommerce_order",
-					"tableTo": "ecommerce_user",
-					"columnsFrom": ["userId"],
-					"columnsTo": ["id"],
-					"onDelete": "restrict",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {
-				"ecommerce_order_orderNumber_unique": {
-					"name": "ecommerce_order_orderNumber_unique",
-					"nullsNotDistinct": false,
-					"columns": ["orderNumber"]
-				}
-			},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_product_image": {
-			"name": "ecommerce_product_image",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"productId": {
-					"name": "productId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"url": {
-					"name": "url",
-					"type": "varchar(500)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"altText": {
-					"name": "altText",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"sortOrder": {
-					"name": "sortOrder",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"default": 0
-				},
-				"isPrimary": {
-					"name": "isPrimary",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				}
-			},
-			"indexes": {
-				"product_image_product_idx": {
-					"name": "product_image_product_idx",
-					"columns": [
-						{
-							"expression": "productId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_image_sort_order_idx": {
-					"name": "product_image_sort_order_idx",
-					"columns": [
-						{
-							"expression": "sortOrder",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_image_primary_idx": {
-					"name": "product_image_primary_idx",
-					"columns": [
-						{
-							"expression": "isPrimary",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {
-				"ecommerce_product_image_productId_ecommerce_product_id_fk": {
-					"name": "ecommerce_product_image_productId_ecommerce_product_id_fk",
-					"tableFrom": "ecommerce_product_image",
-					"tableTo": "ecommerce_product",
-					"columnsFrom": ["productId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_product_review": {
-			"name": "ecommerce_product_review",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"productId": {
-					"name": "productId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"userId": {
-					"name": "userId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"orderId": {
-					"name": "orderId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"rating": {
-					"name": "rating",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"title": {
-					"name": "title",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"comment": {
-					"name": "comment",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"verified": {
-					"name": "verified",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"helpful": {
-					"name": "helpful",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"default": 0
-				},
-				"reported": {
-					"name": "reported",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"approved": {
-					"name": "approved",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				},
-				"updatedAt": {
-					"name": "updatedAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {
-				"product_review_product_idx": {
-					"name": "product_review_product_idx",
-					"columns": [
-						{
-							"expression": "productId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_review_user_idx": {
-					"name": "product_review_user_idx",
-					"columns": [
-						{
-							"expression": "userId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_review_rating_idx": {
-					"name": "product_review_rating_idx",
-					"columns": [
-						{
-							"expression": "rating",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_review_verified_idx": {
-					"name": "product_review_verified_idx",
-					"columns": [
-						{
-							"expression": "verified",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_review_approved_idx": {
-					"name": "product_review_approved_idx",
-					"columns": [
-						{
-							"expression": "approved",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {
-				"ecommerce_product_review_productId_ecommerce_product_id_fk": {
-					"name": "ecommerce_product_review_productId_ecommerce_product_id_fk",
-					"tableFrom": "ecommerce_product_review",
-					"tableTo": "ecommerce_product",
-					"columnsFrom": ["productId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"ecommerce_product_review_userId_ecommerce_user_id_fk": {
-					"name": "ecommerce_product_review_userId_ecommerce_user_id_fk",
-					"tableFrom": "ecommerce_product_review",
-					"tableTo": "ecommerce_user",
-					"columnsFrom": ["userId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"ecommerce_product_review_orderId_ecommerce_order_id_fk": {
-					"name": "ecommerce_product_review_orderId_ecommerce_order_id_fk",
-					"tableFrom": "ecommerce_product_review",
-					"tableTo": "ecommerce_order",
-					"columnsFrom": ["orderId"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_product_view": {
-			"name": "ecommerce_product_view",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"productId": {
-					"name": "productId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"userId": {
-					"name": "userId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"sessionId": {
-					"name": "sessionId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"ipAddress": {
-					"name": "ipAddress",
-					"type": "varchar(45)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"userAgent": {
-					"name": "userAgent",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"referrer": {
-					"name": "referrer",
-					"type": "varchar(500)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				}
-			},
-			"indexes": {
-				"product_view_product_idx": {
-					"name": "product_view_product_idx",
-					"columns": [
-						{
-							"expression": "productId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_view_user_idx": {
-					"name": "product_view_user_idx",
-					"columns": [
-						{
-							"expression": "userId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_view_session_idx": {
-					"name": "product_view_session_idx",
-					"columns": [
-						{
-							"expression": "sessionId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_view_created_at_idx": {
-					"name": "product_view_created_at_idx",
-					"columns": [
-						{
-							"expression": "createdAt",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {
-				"ecommerce_product_view_productId_ecommerce_product_id_fk": {
-					"name": "ecommerce_product_view_productId_ecommerce_product_id_fk",
-					"tableFrom": "ecommerce_product_view",
-					"tableTo": "ecommerce_product",
-					"columnsFrom": ["productId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"ecommerce_product_view_userId_ecommerce_user_id_fk": {
-					"name": "ecommerce_product_view_userId_ecommerce_user_id_fk",
-					"tableFrom": "ecommerce_product_view",
-					"tableTo": "ecommerce_user",
-					"columnsFrom": ["userId"],
-					"columnsTo": ["id"],
-					"onDelete": "set null",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_product": {
-			"name": "ecommerce_product",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"name": {
-					"name": "name",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"slug": {
-					"name": "slug",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"description": {
-					"name": "description",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"shortDescription": {
-					"name": "shortDescription",
-					"type": "varchar(500)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"sku": {
-					"name": "sku",
-					"type": "varchar(100)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"price": {
-					"name": "price",
-					"type": "numeric(10, 2)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"originalPrice": {
-					"name": "originalPrice",
-					"type": "numeric(10, 2)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"costPrice": {
-					"name": "costPrice",
-					"type": "numeric(10, 2)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"categoryId": {
-					"name": "categoryId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"stock": {
-					"name": "stock",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"default": 0
-				},
-				"lowStockThreshold": {
-					"name": "lowStockThreshold",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"default": 10
-				},
-				"weight": {
-					"name": "weight",
-					"type": "numeric(8, 2)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"dimensions": {
-					"name": "dimensions",
-					"type": "jsonb",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"specifications": {
-					"name": "specifications",
-					"type": "jsonb",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'{}'::jsonb"
-				},
-				"tags": {
-					"name": "tags",
-					"type": "jsonb",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'[]'::jsonb"
-				},
-				"featured": {
-					"name": "featured",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"active": {
-					"name": "active",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"digital": {
-					"name": "digital",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"trackQuantity": {
-					"name": "trackQuantity",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": true
-				},
-				"allowBackorder": {
-					"name": "allowBackorder",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"metaTitle": {
-					"name": "metaTitle",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"metaDescription": {
-					"name": "metaDescription",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				},
-				"updatedAt": {
-					"name": "updatedAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {
-				"product_slug_idx": {
-					"name": "product_slug_idx",
-					"columns": [
-						{
-							"expression": "slug",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_category_idx": {
-					"name": "product_category_idx",
-					"columns": [
-						{
-							"expression": "categoryId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_sku_idx": {
-					"name": "product_sku_idx",
-					"columns": [
-						{
-							"expression": "sku",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_price_idx": {
-					"name": "product_price_idx",
-					"columns": [
-						{
-							"expression": "price",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_stock_idx": {
-					"name": "product_stock_idx",
-					"columns": [
-						{
-							"expression": "stock",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_featured_idx": {
-					"name": "product_featured_idx",
-					"columns": [
-						{
-							"expression": "featured",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_active_idx": {
-					"name": "product_active_idx",
-					"columns": [
-						{
-							"expression": "active",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"product_created_at_idx": {
-					"name": "product_created_at_idx",
-					"columns": [
-						{
-							"expression": "createdAt",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {
-				"ecommerce_product_categoryId_ecommerce_category_id_fk": {
-					"name": "ecommerce_product_categoryId_ecommerce_category_id_fk",
-					"tableFrom": "ecommerce_product",
-					"tableTo": "ecommerce_category",
-					"columnsFrom": ["categoryId"],
-					"columnsTo": ["id"],
-					"onDelete": "restrict",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {
-				"ecommerce_product_slug_unique": {
-					"name": "ecommerce_product_slug_unique",
-					"nullsNotDistinct": false,
-					"columns": ["slug"]
-				},
-				"ecommerce_product_sku_unique": {
-					"name": "ecommerce_product_sku_unique",
-					"nullsNotDistinct": false,
-					"columns": ["sku"]
-				}
-			},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_session": {
-			"name": "ecommerce_session",
-			"schema": "",
-			"columns": {
-				"sessionToken": {
-					"name": "sessionToken",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"userId": {
-					"name": "userId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"expires": {
-					"name": "expires",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {
-				"session_user_id_idx": {
-					"name": "session_user_id_idx",
-					"columns": [
-						{
-							"expression": "userId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {
-				"ecommerce_session_userId_ecommerce_user_id_fk": {
-					"name": "ecommerce_session_userId_ecommerce_user_id_fk",
-					"tableFrom": "ecommerce_session",
-					"tableTo": "ecommerce_user",
-					"columnsFrom": ["userId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_user": {
-			"name": "ecommerce_user",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"name": {
-					"name": "name",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"email": {
-					"name": "email",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"emailVerified": {
-					"name": "emailVerified",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": false,
-					"default": "CURRENT_TIMESTAMP"
-				},
-				"image": {
-					"name": "image",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"phone": {
-					"name": "phone",
-					"type": "varchar(20)",
-					"primaryKey": false,
-					"notNull": false
-				},
-				"role": {
-					"name": "role",
-					"type": "varchar(50)",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "'user'"
-				},
-				"blocked": {
-					"name": "blocked",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": true,
-					"default": false
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				},
-				"updatedAt": {
-					"name": "updatedAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": false
-				}
-			},
-			"indexes": {
-				"user_email_idx": {
-					"name": "user_email_idx",
-					"columns": [
-						{
-							"expression": "email",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"user_role_idx": {
-					"name": "user_role_idx",
-					"columns": [
-						{
-							"expression": "role",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {
-				"ecommerce_user_email_unique": {
-					"name": "ecommerce_user_email_unique",
-					"nullsNotDistinct": false,
-					"columns": ["email"]
-				}
-			},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_verification_token": {
-			"name": "ecommerce_verification_token",
-			"schema": "",
-			"columns": {
-				"identifier": {
-					"name": "identifier",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"token": {
-					"name": "token",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"expires": {
-					"name": "expires",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true
-				}
-			},
-			"indexes": {},
-			"foreignKeys": {},
-			"compositePrimaryKeys": {
-				"ecommerce_verification_token_identifier_token_pk": {
-					"name": "ecommerce_verification_token_identifier_token_pk",
-					"columns": ["identifier", "token"]
-				}
-			},
-			"uniqueConstraints": {},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		},
-		"public.ecommerce_wishlist_item": {
-			"name": "ecommerce_wishlist_item",
-			"schema": "",
-			"columns": {
-				"id": {
-					"name": "id",
-					"type": "varchar(255)",
-					"primaryKey": true,
-					"notNull": true
-				},
-				"userId": {
-					"name": "userId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"productId": {
-					"name": "productId",
-					"type": "varchar(255)",
-					"primaryKey": false,
-					"notNull": true
-				},
-				"createdAt": {
-					"name": "createdAt",
-					"type": "timestamp with time zone",
-					"primaryKey": false,
-					"notNull": true,
-					"default": "CURRENT_TIMESTAMP"
-				}
-			},
-			"indexes": {
-				"wishlist_item_user_idx": {
-					"name": "wishlist_item_user_idx",
-					"columns": [
-						{
-							"expression": "userId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"wishlist_item_product_idx": {
-					"name": "wishlist_item_product_idx",
-					"columns": [
-						{
-							"expression": "productId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				},
-				"wishlist_item_user_product_unique": {
-					"name": "wishlist_item_user_product_unique",
-					"columns": [
-						{
-							"expression": "userId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						},
-						{
-							"expression": "productId",
-							"isExpression": false,
-							"asc": true,
-							"nulls": "last"
-						}
-					],
-					"isUnique": false,
-					"concurrently": false,
-					"method": "btree",
-					"with": {}
-				}
-			},
-			"foreignKeys": {
-				"ecommerce_wishlist_item_userId_ecommerce_user_id_fk": {
-					"name": "ecommerce_wishlist_item_userId_ecommerce_user_id_fk",
-					"tableFrom": "ecommerce_wishlist_item",
-					"tableTo": "ecommerce_user",
-					"columnsFrom": ["userId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				},
-				"ecommerce_wishlist_item_productId_ecommerce_product_id_fk": {
-					"name": "ecommerce_wishlist_item_productId_ecommerce_product_id_fk",
-					"tableFrom": "ecommerce_wishlist_item",
-					"tableTo": "ecommerce_product",
-					"columnsFrom": ["productId"],
-					"columnsTo": ["id"],
-					"onDelete": "cascade",
-					"onUpdate": "no action"
-				}
-			},
-			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"policies": {},
-			"checkConstraints": {},
-			"isRLSEnabled": false
-		}
-	},
-	"enums": {},
-	"schemas": {},
-	"sequences": {},
-	"roles": {},
-	"policies": {},
-	"views": {},
-	"_meta": {
-		"columns": {},
-		"schemas": {},
-		"tables": {}
-	}
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "ec7a7151-d72d-4d0f-9fdc-c7f5aed9477c",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "ecommerce_account": {
+      "name": "ecommerce_account",
+      "columns": {
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "provider": {
+          "name": "provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "providerAccountId": {
+          "name": "providerAccountId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "access_token": {
+          "name": "access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "token_type": {
+          "name": "token_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "scope": {
+          "name": "scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "id_token": {
+          "name": "id_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "session_state": {
+          "name": "session_state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "account_user_id_idx": {
+          "name": "account_user_id_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ecommerce_account_userId_ecommerce_user_id_fk": {
+          "name": "ecommerce_account_userId_ecommerce_user_id_fk",
+          "tableFrom": "ecommerce_account",
+          "tableTo": "ecommerce_user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "ecommerce_account_provider_providerAccountId_pk": {
+          "columns": [
+            "provider",
+            "providerAccountId"
+          ],
+          "name": "ecommerce_account_provider_providerAccountId_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_address": {
+      "name": "ecommerce_address",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'shipping'"
+        },
+        "firstName": {
+          "name": "firstName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "lastName": {
+          "name": "lastName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "company": {
+          "name": "company",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "addressLine1": {
+          "name": "addressLine1",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "addressLine2": {
+          "name": "addressLine2",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "city": {
+          "name": "city",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "postalCode": {
+          "name": "postalCode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "country": {
+          "name": "country",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'India'"
+        },
+        "isDefault": {
+          "name": "isDefault",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "address_user_idx": {
+          "name": "address_user_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "address_type_idx": {
+          "name": "address_type_idx",
+          "columns": [
+            "type"
+          ],
+          "isUnique": false
+        },
+        "address_default_idx": {
+          "name": "address_default_idx",
+          "columns": [
+            "isDefault"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ecommerce_address_userId_ecommerce_user_id_fk": {
+          "name": "ecommerce_address_userId_ecommerce_user_id_fk",
+          "tableFrom": "ecommerce_address",
+          "tableTo": "ecommerce_user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_cart_item": {
+      "name": "ecommerce_cart_item",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "productId": {
+          "name": "productId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "cart_item_user_idx": {
+          "name": "cart_item_user_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "cart_item_product_idx": {
+          "name": "cart_item_product_idx",
+          "columns": [
+            "productId"
+          ],
+          "isUnique": false
+        },
+        "cart_item_user_product_unique": {
+          "name": "cart_item_user_product_unique",
+          "columns": [
+            "userId",
+            "productId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ecommerce_cart_item_userId_ecommerce_user_id_fk": {
+          "name": "ecommerce_cart_item_userId_ecommerce_user_id_fk",
+          "tableFrom": "ecommerce_cart_item",
+          "tableTo": "ecommerce_user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ecommerce_cart_item_productId_ecommerce_product_id_fk": {
+          "name": "ecommerce_cart_item_productId_ecommerce_product_id_fk",
+          "tableFrom": "ecommerce_cart_item",
+          "tableTo": "ecommerce_product",
+          "columnsFrom": [
+            "productId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_category": {
+      "name": "ecommerce_category",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "icon": {
+          "name": "icon",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "featured": {
+          "name": "featured",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "active": {
+          "name": "active",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "sortOrder": {
+          "name": "sortOrder",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "metaTitle": {
+          "name": "metaTitle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "metaDescription": {
+          "name": "metaDescription",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ecommerce_category_slug_unique": {
+          "name": "ecommerce_category_slug_unique",
+          "columns": [
+            "slug"
+          ],
+          "isUnique": true
+        },
+        "category_slug_idx": {
+          "name": "category_slug_idx",
+          "columns": [
+            "slug"
+          ],
+          "isUnique": false
+        },
+        "category_featured_idx": {
+          "name": "category_featured_idx",
+          "columns": [
+            "featured"
+          ],
+          "isUnique": false
+        },
+        "category_active_idx": {
+          "name": "category_active_idx",
+          "columns": [
+            "active"
+          ],
+          "isUnique": false
+        },
+        "category_sort_order_idx": {
+          "name": "category_sort_order_idx",
+          "columns": [
+            "sortOrder"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_coupon_usage": {
+      "name": "ecommerce_coupon_usage",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "couponId": {
+          "name": "couponId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "orderId": {
+          "name": "orderId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "discountAmount": {
+          "name": "discountAmount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "coupon_usage_coupon_idx": {
+          "name": "coupon_usage_coupon_idx",
+          "columns": [
+            "couponId"
+          ],
+          "isUnique": false
+        },
+        "coupon_usage_user_idx": {
+          "name": "coupon_usage_user_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "coupon_usage_order_idx": {
+          "name": "coupon_usage_order_idx",
+          "columns": [
+            "orderId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ecommerce_coupon_usage_couponId_ecommerce_coupon_id_fk": {
+          "name": "ecommerce_coupon_usage_couponId_ecommerce_coupon_id_fk",
+          "tableFrom": "ecommerce_coupon_usage",
+          "tableTo": "ecommerce_coupon",
+          "columnsFrom": [
+            "couponId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ecommerce_coupon_usage_userId_ecommerce_user_id_fk": {
+          "name": "ecommerce_coupon_usage_userId_ecommerce_user_id_fk",
+          "tableFrom": "ecommerce_coupon_usage",
+          "tableTo": "ecommerce_user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ecommerce_coupon_usage_orderId_ecommerce_order_id_fk": {
+          "name": "ecommerce_coupon_usage_orderId_ecommerce_order_id_fk",
+          "tableFrom": "ecommerce_coupon_usage",
+          "tableTo": "ecommerce_order",
+          "columnsFrom": [
+            "orderId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_coupon": {
+      "name": "ecommerce_coupon",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "minimumAmount": {
+          "name": "minimumAmount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "maximumDiscount": {
+          "name": "maximumDiscount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "usageLimit": {
+          "name": "usageLimit",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "usageCount": {
+          "name": "usageCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "userUsageLimit": {
+          "name": "userUsageLimit",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "active": {
+          "name": "active",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "startsAt": {
+          "name": "startsAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ecommerce_coupon_code_unique": {
+          "name": "ecommerce_coupon_code_unique",
+          "columns": [
+            "code"
+          ],
+          "isUnique": true
+        },
+        "coupon_code_idx": {
+          "name": "coupon_code_idx",
+          "columns": [
+            "code"
+          ],
+          "isUnique": false
+        },
+        "coupon_active_idx": {
+          "name": "coupon_active_idx",
+          "columns": [
+            "active"
+          ],
+          "isUnique": false
+        },
+        "coupon_expires_at_idx": {
+          "name": "coupon_expires_at_idx",
+          "columns": [
+            "expiresAt"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_notification": {
+      "name": "ecommerce_notification",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "message": {
+          "name": "message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "data": {
+          "name": "data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "read": {
+          "name": "read",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "notification_user_idx": {
+          "name": "notification_user_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "notification_type_idx": {
+          "name": "notification_type_idx",
+          "columns": [
+            "type"
+          ],
+          "isUnique": false
+        },
+        "notification_read_idx": {
+          "name": "notification_read_idx",
+          "columns": [
+            "read"
+          ],
+          "isUnique": false
+        },
+        "notification_created_at_idx": {
+          "name": "notification_created_at_idx",
+          "columns": [
+            "createdAt"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ecommerce_notification_userId_ecommerce_user_id_fk": {
+          "name": "ecommerce_notification_userId_ecommerce_user_id_fk",
+          "tableFrom": "ecommerce_notification",
+          "tableTo": "ecommerce_user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_order_item": {
+      "name": "ecommerce_order_item",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "orderId": {
+          "name": "orderId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "productId": {
+          "name": "productId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "productName": {
+          "name": "productName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "productSku": {
+          "name": "productSku",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "productImage": {
+          "name": "productImage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "unitPrice": {
+          "name": "unitPrice",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "totalPrice": {
+          "name": "totalPrice",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "order_item_order_idx": {
+          "name": "order_item_order_idx",
+          "columns": [
+            "orderId"
+          ],
+          "isUnique": false
+        },
+        "order_item_product_idx": {
+          "name": "order_item_product_idx",
+          "columns": [
+            "productId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ecommerce_order_item_orderId_ecommerce_order_id_fk": {
+          "name": "ecommerce_order_item_orderId_ecommerce_order_id_fk",
+          "tableFrom": "ecommerce_order_item",
+          "tableTo": "ecommerce_order",
+          "columnsFrom": [
+            "orderId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ecommerce_order_item_productId_ecommerce_product_id_fk": {
+          "name": "ecommerce_order_item_productId_ecommerce_product_id_fk",
+          "tableFrom": "ecommerce_order_item",
+          "tableTo": "ecommerce_product",
+          "columnsFrom": [
+            "productId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_order_status_history": {
+      "name": "ecommerce_order_status_history",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "orderId": {
+          "name": "orderId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "comment": {
+          "name": "comment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "notifyCustomer": {
+          "name": "notifyCustomer",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "createdBy": {
+          "name": "createdBy",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "order_status_history_order_idx": {
+          "name": "order_status_history_order_idx",
+          "columns": [
+            "orderId"
+          ],
+          "isUnique": false
+        },
+        "order_status_history_status_idx": {
+          "name": "order_status_history_status_idx",
+          "columns": [
+            "status"
+          ],
+          "isUnique": false
+        },
+        "order_status_history_created_at_idx": {
+          "name": "order_status_history_created_at_idx",
+          "columns": [
+            "createdAt"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ecommerce_order_status_history_orderId_ecommerce_order_id_fk": {
+          "name": "ecommerce_order_status_history_orderId_ecommerce_order_id_fk",
+          "tableFrom": "ecommerce_order_status_history",
+          "tableTo": "ecommerce_order",
+          "columnsFrom": [
+            "orderId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ecommerce_order_status_history_createdBy_ecommerce_user_id_fk": {
+          "name": "ecommerce_order_status_history_createdBy_ecommerce_user_id_fk",
+          "tableFrom": "ecommerce_order_status_history",
+          "tableTo": "ecommerce_user",
+          "columnsFrom": [
+            "createdBy"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_order": {
+      "name": "ecommerce_order",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "orderNumber": {
+          "name": "orderNumber",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pending'"
+        },
+        "paymentStatus": {
+          "name": "paymentStatus",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pending'"
+        },
+        "paymentMethod": {
+          "name": "paymentMethod",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "paymentId": {
+          "name": "paymentId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "subtotal": {
+          "name": "subtotal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "taxAmount": {
+          "name": "taxAmount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'0'"
+        },
+        "shippingAmount": {
+          "name": "shippingAmount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'0'"
+        },
+        "discountAmount": {
+          "name": "discountAmount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'0'"
+        },
+        "totalAmount": {
+          "name": "totalAmount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "shippingAddress": {
+          "name": "shippingAddress",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "billingAddress": {
+          "name": "billingAddress",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "trackingNumber": {
+          "name": "trackingNumber",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "estimatedDelivery": {
+          "name": "estimatedDelivery",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "deliveredAt": {
+          "name": "deliveredAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "customerNotes": {
+          "name": "customerNotes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "adminNotes": {
+          "name": "adminNotes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ecommerce_order_orderNumber_unique": {
+          "name": "ecommerce_order_orderNumber_unique",
+          "columns": [
+            "orderNumber"
+          ],
+          "isUnique": true
+        },
+        "order_number_idx": {
+          "name": "order_number_idx",
+          "columns": [
+            "orderNumber"
+          ],
+          "isUnique": false
+        },
+        "order_user_idx": {
+          "name": "order_user_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "order_status_idx": {
+          "name": "order_status_idx",
+          "columns": [
+            "status"
+          ],
+          "isUnique": false
+        },
+        "order_payment_status_idx": {
+          "name": "order_payment_status_idx",
+          "columns": [
+            "paymentStatus"
+          ],
+          "isUnique": false
+        },
+        "order_created_at_idx": {
+          "name": "order_created_at_idx",
+          "columns": [
+            "createdAt"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ecommerce_order_userId_ecommerce_user_id_fk": {
+          "name": "ecommerce_order_userId_ecommerce_user_id_fk",
+          "tableFrom": "ecommerce_order",
+          "tableTo": "ecommerce_user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_product_image": {
+      "name": "ecommerce_product_image",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "productId": {
+          "name": "productId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "altText": {
+          "name": "altText",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "sortOrder": {
+          "name": "sortOrder",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "isPrimary": {
+          "name": "isPrimary",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "product_image_product_idx": {
+          "name": "product_image_product_idx",
+          "columns": [
+            "productId"
+          ],
+          "isUnique": false
+        },
+        "product_image_sort_order_idx": {
+          "name": "product_image_sort_order_idx",
+          "columns": [
+            "sortOrder"
+          ],
+          "isUnique": false
+        },
+        "product_image_primary_idx": {
+          "name": "product_image_primary_idx",
+          "columns": [
+            "isPrimary"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ecommerce_product_image_productId_ecommerce_product_id_fk": {
+          "name": "ecommerce_product_image_productId_ecommerce_product_id_fk",
+          "tableFrom": "ecommerce_product_image",
+          "tableTo": "ecommerce_product",
+          "columnsFrom": [
+            "productId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_product_review": {
+      "name": "ecommerce_product_review",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "productId": {
+          "name": "productId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "orderId": {
+          "name": "orderId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rating": {
+          "name": "rating",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "comment": {
+          "name": "comment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "verified": {
+          "name": "verified",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "helpful": {
+          "name": "helpful",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "reported": {
+          "name": "reported",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "approved": {
+          "name": "approved",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "product_review_product_idx": {
+          "name": "product_review_product_idx",
+          "columns": [
+            "productId"
+          ],
+          "isUnique": false
+        },
+        "product_review_user_idx": {
+          "name": "product_review_user_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "product_review_rating_idx": {
+          "name": "product_review_rating_idx",
+          "columns": [
+            "rating"
+          ],
+          "isUnique": false
+        },
+        "product_review_verified_idx": {
+          "name": "product_review_verified_idx",
+          "columns": [
+            "verified"
+          ],
+          "isUnique": false
+        },
+        "product_review_approved_idx": {
+          "name": "product_review_approved_idx",
+          "columns": [
+            "approved"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ecommerce_product_review_productId_ecommerce_product_id_fk": {
+          "name": "ecommerce_product_review_productId_ecommerce_product_id_fk",
+          "tableFrom": "ecommerce_product_review",
+          "tableTo": "ecommerce_product",
+          "columnsFrom": [
+            "productId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ecommerce_product_review_userId_ecommerce_user_id_fk": {
+          "name": "ecommerce_product_review_userId_ecommerce_user_id_fk",
+          "tableFrom": "ecommerce_product_review",
+          "tableTo": "ecommerce_user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ecommerce_product_review_orderId_ecommerce_order_id_fk": {
+          "name": "ecommerce_product_review_orderId_ecommerce_order_id_fk",
+          "tableFrom": "ecommerce_product_review",
+          "tableTo": "ecommerce_order",
+          "columnsFrom": [
+            "orderId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_product_view": {
+      "name": "ecommerce_product_view",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "productId": {
+          "name": "productId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "sessionId": {
+          "name": "sessionId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "ipAddress": {
+          "name": "ipAddress",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "userAgent": {
+          "name": "userAgent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "referrer": {
+          "name": "referrer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "product_view_product_idx": {
+          "name": "product_view_product_idx",
+          "columns": [
+            "productId"
+          ],
+          "isUnique": false
+        },
+        "product_view_user_idx": {
+          "name": "product_view_user_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "product_view_session_idx": {
+          "name": "product_view_session_idx",
+          "columns": [
+            "sessionId"
+          ],
+          "isUnique": false
+        },
+        "product_view_created_at_idx": {
+          "name": "product_view_created_at_idx",
+          "columns": [
+            "createdAt"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ecommerce_product_view_productId_ecommerce_product_id_fk": {
+          "name": "ecommerce_product_view_productId_ecommerce_product_id_fk",
+          "tableFrom": "ecommerce_product_view",
+          "tableTo": "ecommerce_product",
+          "columnsFrom": [
+            "productId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ecommerce_product_view_userId_ecommerce_user_id_fk": {
+          "name": "ecommerce_product_view_userId_ecommerce_user_id_fk",
+          "tableFrom": "ecommerce_product_view",
+          "tableTo": "ecommerce_user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_product": {
+      "name": "ecommerce_product",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "shortDescription": {
+          "name": "shortDescription",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "sku": {
+          "name": "sku",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "price": {
+          "name": "price",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "originalPrice": {
+          "name": "originalPrice",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "costPrice": {
+          "name": "costPrice",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "categoryId": {
+          "name": "categoryId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "stock": {
+          "name": "stock",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "lowStockThreshold": {
+          "name": "lowStockThreshold",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 10
+        },
+        "weight": {
+          "name": "weight",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "dimensions": {
+          "name": "dimensions",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "specifications": {
+          "name": "specifications",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'{}'"
+        },
+        "tags": {
+          "name": "tags",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
+        "featured": {
+          "name": "featured",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "active": {
+          "name": "active",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "digital": {
+          "name": "digital",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "trackQuantity": {
+          "name": "trackQuantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "allowBackorder": {
+          "name": "allowBackorder",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "metaTitle": {
+          "name": "metaTitle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "metaDescription": {
+          "name": "metaDescription",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ecommerce_product_slug_unique": {
+          "name": "ecommerce_product_slug_unique",
+          "columns": [
+            "slug"
+          ],
+          "isUnique": true
+        },
+        "ecommerce_product_sku_unique": {
+          "name": "ecommerce_product_sku_unique",
+          "columns": [
+            "sku"
+          ],
+          "isUnique": true
+        },
+        "product_slug_idx": {
+          "name": "product_slug_idx",
+          "columns": [
+            "slug"
+          ],
+          "isUnique": false
+        },
+        "product_category_idx": {
+          "name": "product_category_idx",
+          "columns": [
+            "categoryId"
+          ],
+          "isUnique": false
+        },
+        "product_sku_idx": {
+          "name": "product_sku_idx",
+          "columns": [
+            "sku"
+          ],
+          "isUnique": false
+        },
+        "product_price_idx": {
+          "name": "product_price_idx",
+          "columns": [
+            "price"
+          ],
+          "isUnique": false
+        },
+        "product_stock_idx": {
+          "name": "product_stock_idx",
+          "columns": [
+            "stock"
+          ],
+          "isUnique": false
+        },
+        "product_featured_idx": {
+          "name": "product_featured_idx",
+          "columns": [
+            "featured"
+          ],
+          "isUnique": false
+        },
+        "product_active_idx": {
+          "name": "product_active_idx",
+          "columns": [
+            "active"
+          ],
+          "isUnique": false
+        },
+        "product_created_at_idx": {
+          "name": "product_created_at_idx",
+          "columns": [
+            "createdAt"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ecommerce_product_categoryId_ecommerce_category_id_fk": {
+          "name": "ecommerce_product_categoryId_ecommerce_category_id_fk",
+          "tableFrom": "ecommerce_product",
+          "tableTo": "ecommerce_category",
+          "columnsFrom": [
+            "categoryId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_session": {
+      "name": "ecommerce_session",
+      "columns": {
+        "sessionToken": {
+          "name": "sessionToken",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires": {
+          "name": "expires",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "session_user_id_idx": {
+          "name": "session_user_id_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ecommerce_session_userId_ecommerce_user_id_fk": {
+          "name": "ecommerce_session_userId_ecommerce_user_id_fk",
+          "tableFrom": "ecommerce_session",
+          "tableTo": "ecommerce_user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_user": {
+      "name": "ecommerce_user",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "emailVerified": {
+          "name": "emailVerified",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'user'"
+        },
+        "blocked": {
+          "name": "blocked",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ecommerce_user_email_unique": {
+          "name": "ecommerce_user_email_unique",
+          "columns": [
+            "email"
+          ],
+          "isUnique": true
+        },
+        "user_email_idx": {
+          "name": "user_email_idx",
+          "columns": [
+            "email"
+          ],
+          "isUnique": false
+        },
+        "user_role_idx": {
+          "name": "user_role_idx",
+          "columns": [
+            "role"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_verification_token": {
+      "name": "ecommerce_verification_token",
+      "columns": {
+        "identifier": {
+          "name": "identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires": {
+          "name": "expires",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "ecommerce_verification_token_identifier_token_pk": {
+          "columns": [
+            "identifier",
+            "token"
+          ],
+          "name": "ecommerce_verification_token_identifier_token_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ecommerce_wishlist_item": {
+      "name": "ecommerce_wishlist_item",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "productId": {
+          "name": "productId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "wishlist_item_user_idx": {
+          "name": "wishlist_item_user_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "wishlist_item_product_idx": {
+          "name": "wishlist_item_product_idx",
+          "columns": [
+            "productId"
+          ],
+          "isUnique": false
+        },
+        "wishlist_item_user_product_unique": {
+          "name": "wishlist_item_user_product_unique",
+          "columns": [
+            "userId",
+            "productId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ecommerce_wishlist_item_userId_ecommerce_user_id_fk": {
+          "name": "ecommerce_wishlist_item_userId_ecommerce_user_id_fk",
+          "tableFrom": "ecommerce_wishlist_item",
+          "tableTo": "ecommerce_user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ecommerce_wishlist_item_productId_ecommerce_product_id_fk": {
+          "name": "ecommerce_wishlist_item_productId_ecommerce_product_id_fk",
+          "tableFrom": "ecommerce_wishlist_item",
+          "tableTo": "ecommerce_product",
+          "columnsFrom": [
+            "productId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
 }

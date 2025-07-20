@@ -1,17 +1,19 @@
 import { relations, sql } from "drizzle-orm";
 import {
 	index,
-	numeric,
-	pgTableCreator,
+	sqliteTableCreator,
 	primaryKey,
-} from "drizzle-orm/pg-core";
+	text,
+	integer,
+	real,
+	blob,
+} from "drizzle-orm/sqlite-core";
 import type { AdapterAccount } from "next-auth/adapters";
 
 /**
- * Multi-project schema for e-commerce platform
- * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
+ * Multi-project schema for e-commerce platform - SQLite version
  */
-export const createTable = pgTableCreator((name) => `ecommerce_${name}`);
+export const createTable = sqliteTableCreator((name) => `ecommerce_${name}`);
 
 // ============================================================================
 // AUTH TABLES (NextAuth.js integration)
@@ -19,82 +21,68 @@ export const createTable = pgTableCreator((name) => `ecommerce_${name}`);
 
 export const users = createTable(
 	"user",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		name: d.varchar({ length: 255 }),
-		email: d.varchar({ length: 255 }).notNull().unique(),
-		emailVerified: d
-			.timestamp({
-				mode: "date",
-				withTimezone: true,
-			})
-			.default(sql`CURRENT_TIMESTAMP`),
-		image: d.varchar({ length: 255 }),
-		password: d.varchar({ length: 255 }),
-		phone: d.varchar({ length: 20 }),
-		role: d.varchar({ length: 50 }).notNull().default("user"), // user, admin
-		blocked: d.boolean().notNull().default(false),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		name: text("name"),
+		email: text("email").notNull().unique(),
+		emailVerified: integer("emailVerified", { mode: "timestamp" }),
+		image: text("image"),
+		password: text("password"),
+		phone: text("phone"),
+		role: text("role").notNull().default("user"), // user, admin
+		blocked: integer("blocked", { mode: "boolean" }).notNull().default(false),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+		updatedAt: integer("updatedAt", { mode: "timestamp" }).$onUpdate(() => new Date()),
+	},
+	(t) => ({
+		emailIdx: index("user_email_idx").on(t.email),
+		roleIdx: index("user_role_idx").on(t.role),
 	}),
-	(t) => [
-		index("user_email_idx").on(t.email),
-		index("user_role_idx").on(t.role),
-	],
 );
 
 export const accounts = createTable(
 	"account",
-	(d) => ({
-		userId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		type: d.varchar({ length: 255 }).$type<AdapterAccount["type"]>().notNull(),
-		provider: d.varchar({ length: 255 }).notNull(),
-		providerAccountId: d.varchar({ length: 255 }).notNull(),
-		refresh_token: d.text(),
-		access_token: d.text(),
-		expires_at: d.integer(),
-		token_type: d.varchar({ length: 255 }),
-		scope: d.varchar({ length: 255 }),
-		id_token: d.text(),
-		session_state: d.varchar({ length: 255 }),
+	{
+		userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+		type: text("type").$type<AdapterAccount["type"]>().notNull(),
+		provider: text("provider").notNull(),
+		providerAccountId: text("providerAccountId").notNull(),
+		refresh_token: text("refresh_token"),
+		access_token: text("access_token"),
+		expires_at: integer("expires_at"),
+		token_type: text("token_type"),
+		scope: text("scope"),
+		id_token: text("id_token"),
+		session_state: text("session_state"),
+	},
+	(t) => ({
+		compositePk: primaryKey({ columns: [t.provider, t.providerAccountId] }),
+		userIdIdx: index("account_user_id_idx").on(t.userId),
 	}),
-	(t) => [
-		primaryKey({ columns: [t.provider, t.providerAccountId] }),
-		index("account_user_id_idx").on(t.userId),
-	],
 );
 
 export const sessions = createTable(
 	"session",
-	(d) => ({
-		sessionToken: d.varchar({ length: 255 }).notNull().primaryKey(),
-		userId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
+	{
+		sessionToken: text("sessionToken").notNull().primaryKey(),
+		userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+		expires: integer("expires", { mode: "timestamp" }).notNull(),
+	},
+	(t) => ({
+		userIdIdx: index("session_user_id_idx").on(t.userId),
 	}),
-	(t) => [index("session_user_id_idx").on(t.userId)],
 );
 
 export const verificationTokens = createTable(
 	"verification_token",
-	(d) => ({
-		identifier: d.varchar({ length: 255 }).notNull(),
-		token: d.varchar({ length: 255 }).notNull(),
-		expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
+	{
+		identifier: text("identifier").notNull(),
+		token: text("token").notNull(),
+		expires: integer("expires", { mode: "timestamp" }).notNull(),
+	},
+	(t) => ({
+		compositePk: primaryKey({ columns: [t.identifier, t.token] }),
 	}),
-	(t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
 
 // ============================================================================
@@ -103,34 +91,27 @@ export const verificationTokens = createTable(
 
 export const categories = createTable(
 	"category",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		name: d.varchar({ length: 255 }).notNull(),
-		slug: d.varchar({ length: 255 }).notNull().unique(),
-		description: d.text(),
-		icon: d.varchar({ length: 10 }), // emoji icon
-		image: d.varchar({ length: 500 }), // category image URL
-		featured: d.boolean().notNull().default(false),
-		active: d.boolean().notNull().default(true),
-		sortOrder: d.integer().notNull().default(0),
-		metaTitle: d.varchar({ length: 255 }),
-		metaDescription: d.text(),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		name: text("name").notNull(),
+		slug: text("slug").notNull().unique(),
+		description: text("description"),
+		icon: text("icon"), // emoji icon
+		image: text("image"), // category image URL
+		featured: integer("featured", { mode: "boolean" }).notNull().default(false),
+		active: integer("active", { mode: "boolean" }).notNull().default(true),
+		sortOrder: integer("sortOrder").notNull().default(0),
+		metaTitle: text("metaTitle"),
+		metaDescription: text("metaDescription"),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+		updatedAt: integer("updatedAt", { mode: "timestamp" }).$onUpdate(() => new Date()),
+	},
+	(t) => ({
+		slugIdx: index("category_slug_idx").on(t.slug),
+		featuredIdx: index("category_featured_idx").on(t.featured),
+		activeIdx: index("category_active_idx").on(t.active),
+		sortOrderIdx: index("category_sort_order_idx").on(t.sortOrder),
 	}),
-	(t) => [
-		index("category_slug_idx").on(t.slug),
-		index("category_featured_idx").on(t.featured),
-		index("category_active_idx").on(t.active),
-		index("category_sort_order_idx").on(t.sortOrder),
-	],
 );
 
 // ============================================================================
@@ -139,131 +120,92 @@ export const categories = createTable(
 
 export const products = createTable(
 	"product",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		name: d.varchar({ length: 255 }).notNull(),
-		slug: d.varchar({ length: 255 }).notNull().unique(),
-		description: d.text().notNull(),
-		shortDescription: d.varchar({ length: 500 }),
-		sku: d.varchar({ length: 100 }).unique(),
-		price: d.numeric({ precision: 10, scale: 2 }).notNull(),
-		originalPrice: d.numeric({ precision: 10, scale: 2 }),
-		costPrice: d.numeric({ precision: 10, scale: 2 }),
-		categoryId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => categories.id, { onDelete: "restrict" }),
-		stock: d.integer().notNull().default(0),
-		lowStockThreshold: d.integer().notNull().default(10),
-		weight: d.numeric({ precision: 8, scale: 2 }),
-		dimensions: d.jsonb().$type<{
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		name: text("name").notNull(),
+		slug: text("slug").notNull().unique(),
+		description: text("description").notNull(),
+		shortDescription: text("shortDescription"),
+		sku: text("sku").unique(),
+		price: text("price").notNull(), // Store as text to avoid precision issues
+		originalPrice: text("originalPrice"),
+		costPrice: text("costPrice"),
+		categoryId: text("categoryId").notNull().references(() => categories.id, { onDelete: "restrict" }),
+		stock: integer("stock").notNull().default(0),
+		lowStockThreshold: integer("lowStockThreshold").notNull().default(10),
+		weight: real("weight"),
+		dimensions: text("dimensions", { mode: "json" }).$type<{
 			length?: number;
 			width?: number;
 			height?: number;
 			unit?: string;
 		}>(),
-		specifications: d
-			.jsonb()
-			.$type<Record<string, string>>()
-			.notNull()
-			.default({}),
-		tags: d.jsonb().$type<string[]>().notNull().default([]),
-		featured: d.boolean().notNull().default(false),
-		active: d.boolean().notNull().default(true),
-		digital: d.boolean().notNull().default(false),
-		trackQuantity: d.boolean().notNull().default(true),
-		allowBackorder: d.boolean().notNull().default(false),
-		metaTitle: d.varchar({ length: 255 }),
-		metaDescription: d.text(),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+		specifications: text("specifications", { mode: "json" }).$type<Record<string, string>>().notNull().default("{}"),
+		tags: text("tags", { mode: "json" }).$type<string[]>().notNull().default("[]"),
+		featured: integer("featured", { mode: "boolean" }).notNull().default(false),
+		active: integer("active", { mode: "boolean" }).notNull().default(true),
+		digital: integer("digital", { mode: "boolean" }).notNull().default(false),
+		trackQuantity: integer("trackQuantity", { mode: "boolean" }).notNull().default(true),
+		allowBackorder: integer("allowBackorder", { mode: "boolean" }).notNull().default(false),
+		metaTitle: text("metaTitle"),
+		metaDescription: text("metaDescription"),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+		updatedAt: integer("updatedAt", { mode: "timestamp" }).$onUpdate(() => new Date()),
+	},
+	(t) => ({
+		slugIdx: index("product_slug_idx").on(t.slug),
+		categoryIdx: index("product_category_idx").on(t.categoryId),
+		skuIdx: index("product_sku_idx").on(t.sku),
+		priceIdx: index("product_price_idx").on(t.price),
+		stockIdx: index("product_stock_idx").on(t.stock),
+		featuredIdx: index("product_featured_idx").on(t.featured),
+		activeIdx: index("product_active_idx").on(t.active),
+		createdAtIdx: index("product_created_at_idx").on(t.createdAt),
 	}),
-	(t) => [
-		index("product_slug_idx").on(t.slug),
-		index("product_category_idx").on(t.categoryId),
-		index("product_sku_idx").on(t.sku),
-		index("product_price_idx").on(t.price),
-		index("product_stock_idx").on(t.stock),
-		index("product_featured_idx").on(t.featured),
-		index("product_active_idx").on(t.active),
-		index("product_created_at_idx").on(t.createdAt),
-	],
 );
 
 export const productImages = createTable(
 	"product_image",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		productId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => products.id, { onDelete: "cascade" }),
-		url: d.varchar({ length: 500 }).notNull(),
-		altText: d.varchar({ length: 255 }),
-		sortOrder: d.integer().notNull().default(0),
-		isPrimary: d.boolean().notNull().default(false),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		productId: text("productId").notNull().references(() => products.id, { onDelete: "cascade" }),
+		url: text("url").notNull(),
+		altText: text("altText"),
+		sortOrder: integer("sortOrder").notNull().default(0),
+		isPrimary: integer("isPrimary", { mode: "boolean" }).notNull().default(false),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+	},
+	(t) => ({
+		productIdx: index("product_image_product_idx").on(t.productId),
+		sortOrderIdx: index("product_image_sort_order_idx").on(t.sortOrder),
+		primaryIdx: index("product_image_primary_idx").on(t.isPrimary),
 	}),
-	(t) => [
-		index("product_image_product_idx").on(t.productId),
-		index("product_image_sort_order_idx").on(t.sortOrder),
-		index("product_image_primary_idx").on(t.isPrimary),
-	],
 );
 
 export const productReviews = createTable(
 	"product_review",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		productId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => products.id, { onDelete: "cascade" }),
-		userId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		orderId: d
-			.varchar({ length: 255 })
-			.references(() => orders.id, { onDelete: "set null" }),
-		rating: d.integer().notNull(), // 1-5
-		title: d.varchar({ length: 255 }),
-		comment: d.text(),
-		verified: d.boolean().notNull().default(false), // verified purchase
-		helpful: d.integer().notNull().default(0), // helpful votes
-		reported: d.boolean().notNull().default(false),
-		approved: d.boolean().notNull().default(true),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		productId: text("productId").notNull().references(() => products.id, { onDelete: "cascade" }),
+		userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+		orderId: text("orderId").references(() => orders.id, { onDelete: "set null" }),
+		rating: integer("rating").notNull(), // 1-5
+		title: text("title"),
+		comment: text("comment"),
+		verified: integer("verified", { mode: "boolean" }).notNull().default(false),
+		helpful: integer("helpful").notNull().default(0),
+		reported: integer("reported", { mode: "boolean" }).notNull().default(false),
+		approved: integer("approved", { mode: "boolean" }).notNull().default(true),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+		updatedAt: integer("updatedAt", { mode: "timestamp" }).$onUpdate(() => new Date()),
+	},
+	(t) => ({
+		productIdx: index("product_review_product_idx").on(t.productId),
+		userIdx: index("product_review_user_idx").on(t.userId),
+		ratingIdx: index("product_review_rating_idx").on(t.rating),
+		verifiedIdx: index("product_review_verified_idx").on(t.verified),
+		approvedIdx: index("product_review_approved_idx").on(t.approved),
 	}),
-	(t) => [
-		index("product_review_product_idx").on(t.productId),
-		index("product_review_user_idx").on(t.userId),
-		index("product_review_rating_idx").on(t.rating),
-		index("product_review_verified_idx").on(t.verified),
-		index("product_review_approved_idx").on(t.approved),
-	],
 );
 
 // ============================================================================
@@ -272,62 +214,34 @@ export const productReviews = createTable(
 
 export const cartItems = createTable(
 	"cart_item",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		userId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		productId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => products.id, { onDelete: "cascade" }),
-		quantity: d.integer().notNull().default(1),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+		productId: text("productId").notNull().references(() => products.id, { onDelete: "cascade" }),
+		quantity: integer("quantity").notNull().default(1),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+		updatedAt: integer("updatedAt", { mode: "timestamp" }).$onUpdate(() => new Date()),
+	},
+	(t) => ({
+		userIdx: index("cart_item_user_idx").on(t.userId),
+		productIdx: index("cart_item_product_idx").on(t.productId),
+		userProductIdx: index("cart_item_user_product_unique").on(t.userId, t.productId),
 	}),
-	(t) => [
-		index("cart_item_user_idx").on(t.userId),
-		index("cart_item_product_idx").on(t.productId),
-		// Unique constraint to prevent duplicate cart items
-		index("cart_item_user_product_unique").on(t.userId, t.productId),
-	],
 );
 
 export const wishlistItems = createTable(
 	"wishlist_item",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		userId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		productId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => products.id, { onDelete: "cascade" }),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+		productId: text("productId").notNull().references(() => products.id, { onDelete: "cascade" }),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+	},
+	(t) => ({
+		userIdx: index("wishlist_item_user_idx").on(t.userId),
+		productIdx: index("wishlist_item_product_idx").on(t.productId),
+		userProductIdx: index("wishlist_item_user_product_unique").on(t.userId, t.productId),
 	}),
-	(t) => [
-		index("wishlist_item_user_idx").on(t.userId),
-		index("wishlist_item_product_idx").on(t.productId),
-		// Unique constraint to prevent duplicate wishlist items
-		index("wishlist_item_user_product_unique").on(t.userId, t.productId),
-	],
 );
 
 // ============================================================================
@@ -336,39 +250,29 @@ export const wishlistItems = createTable(
 
 export const addresses = createTable(
 	"address",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		userId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		type: d.varchar({ length: 50 }).notNull().default("shipping"), // shipping, billing
-		firstName: d.varchar({ length: 255 }).notNull(),
-		lastName: d.varchar({ length: 255 }).notNull(),
-		company: d.varchar({ length: 255 }),
-		phone: d.varchar({ length: 20 }),
-		addressLine1: d.varchar({ length: 255 }).notNull(),
-		addressLine2: d.varchar({ length: 255 }),
-		city: d.varchar({ length: 255 }).notNull(),
-		state: d.varchar({ length: 255 }).notNull(),
-		postalCode: d.varchar({ length: 20 }).notNull(),
-		country: d.varchar({ length: 255 }).notNull().default("India"),
-		isDefault: d.boolean().notNull().default(false),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+		type: text("type").notNull().default("shipping"), // shipping, billing
+		firstName: text("firstName").notNull(),
+		lastName: text("lastName").notNull(),
+		company: text("company"),
+		phone: text("phone"),
+		addressLine1: text("addressLine1").notNull(),
+		addressLine2: text("addressLine2"),
+		city: text("city").notNull(),
+		state: text("state").notNull(),
+		postalCode: text("postalCode").notNull(),
+		country: text("country").notNull().default("India"),
+		isDefault: integer("isDefault", { mode: "boolean" }).notNull().default(false),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+		updatedAt: integer("updatedAt", { mode: "timestamp" }).$onUpdate(() => new Date()),
+	},
+	(t) => ({
+		userIdx: index("address_user_idx").on(t.userId),
+		typeIdx: index("address_type_idx").on(t.type),
+		defaultIdx: index("address_default_idx").on(t.isDefault),
 	}),
-	(t) => [
-		index("address_user_idx").on(t.userId),
-		index("address_type_idx").on(t.type),
-		index("address_default_idx").on(t.isDefault),
-	],
 );
 
 // ============================================================================
@@ -377,53 +281,37 @@ export const addresses = createTable(
 
 export const orders = createTable(
 	"order",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		orderNumber: d.varchar({ length: 50 }).notNull().unique(),
-		userId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id, { onDelete: "restrict" }),
-		status: d.varchar({ length: 50 }).notNull().default("pending"), // pending, confirmed, shipped, delivered, cancelled, refunded
-		paymentStatus: d.varchar({ length: 50 }).notNull().default("pending"), // pending, paid, failed, refunded
-		paymentMethod: d.varchar({ length: 50 }).notNull(), // cod, card, upi, wallet
-		paymentId: d.varchar({ length: 255 }), // external payment gateway ID
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		orderNumber: text("orderNumber").notNull().unique(),
+		userId: text("userId").notNull().references(() => users.id, { onDelete: "restrict" }),
+		status: text("status").notNull().default("pending"), // pending, confirmed, shipped, delivered, cancelled, refunded
+		paymentStatus: text("paymentStatus").notNull().default("pending"), // pending, paid, failed, refunded
+		paymentMethod: text("paymentMethod").notNull(), // cod, card, upi, wallet
+		paymentId: text("paymentId"), // external payment gateway ID
 
 		// Pricing
-		subtotal: d.numeric({ precision: 10, scale: 2 }).notNull(),
-		taxAmount: d.numeric({ precision: 10, scale: 2 }).notNull().default("0"),
-		shippingAmount: d
-			.numeric({ precision: 10, scale: 2 })
-			.notNull()
-			.default("0"),
-		discountAmount: d
-			.numeric({ precision: 10, scale: 2 })
-			.notNull()
-			.default("0"),
-		totalAmount: d.numeric({ precision: 10, scale: 2 }).notNull(),
+		subtotal: text("subtotal").notNull(),
+		taxAmount: text("taxAmount").notNull().default("0"),
+		shippingAmount: text("shippingAmount").notNull().default("0"),
+		discountAmount: text("discountAmount").notNull().default("0"),
+		totalAmount: text("totalAmount").notNull(),
 
-		// Addresses (denormalized for historical record)
-		shippingAddress: d
-			.jsonb()
-			.$type<{
-				firstName: string;
-				lastName: string;
-				company?: string;
-				phone?: string;
-				addressLine1: string;
-				addressLine2?: string;
-				city: string;
-				state: string;
-				postalCode: string;
-				country: string;
-			}>()
-			.notNull(),
+		// Addresses (JSON stored)
+		shippingAddress: text("shippingAddress", { mode: "json" }).$type<{
+			firstName: string;
+			lastName: string;
+			company?: string;
+			phone?: string;
+			addressLine1: string;
+			addressLine2?: string;
+			city: string;
+			state: string;
+			postalCode: string;
+			country: string;
+		}>().notNull(),
 
-		billingAddress: d.jsonb().$type<{
+		billingAddress: text("billingAddress", { mode: "json" }).$type<{
 			firstName: string;
 			lastName: string;
 			company?: string;
@@ -437,94 +325,66 @@ export const orders = createTable(
 		}>(),
 
 		// Tracking
-		trackingNumber: d.varchar({ length: 255 }),
-		estimatedDelivery: d.timestamp({ withTimezone: true }),
-		deliveredAt: d.timestamp({ withTimezone: true }),
+		trackingNumber: text("trackingNumber"),
+		estimatedDelivery: integer("estimatedDelivery", { mode: "timestamp" }),
+		deliveredAt: integer("deliveredAt", { mode: "timestamp" }),
 
 		// Notes
-		customerNotes: d.text(),
-		adminNotes: d.text(),
+		customerNotes: text("customerNotes"),
+		adminNotes: text("adminNotes"),
 
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+		updatedAt: integer("updatedAt", { mode: "timestamp" }).$onUpdate(() => new Date()),
+	},
+	(t) => ({
+		orderNumberIdx: index("order_number_idx").on(t.orderNumber),
+		userIdx: index("order_user_idx").on(t.userId),
+		statusIdx: index("order_status_idx").on(t.status),
+		paymentStatusIdx: index("order_payment_status_idx").on(t.paymentStatus),
+		createdAtIdx: index("order_created_at_idx").on(t.createdAt),
 	}),
-	(t) => [
-		index("order_number_idx").on(t.orderNumber),
-		index("order_user_idx").on(t.userId),
-		index("order_status_idx").on(t.status),
-		index("order_payment_status_idx").on(t.paymentStatus),
-		index("order_created_at_idx").on(t.createdAt),
-	],
 );
 
 export const orderItems = createTable(
 	"order_item",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		orderId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => orders.id, { onDelete: "cascade" }),
-		productId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => products.id, { onDelete: "restrict" }),
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		orderId: text("orderId").notNull().references(() => orders.id, { onDelete: "cascade" }),
+		productId: text("productId").notNull().references(() => products.id, { onDelete: "restrict" }),
 
 		// Product snapshot (for historical record)
-		productName: d.varchar({ length: 255 }).notNull(),
-		productSku: d.varchar({ length: 100 }),
-		productImage: d.varchar({ length: 500 }),
+		productName: text("productName").notNull(),
+		productSku: text("productSku"),
+		productImage: text("productImage"),
 
-		quantity: d.integer().notNull(),
-		unitPrice: d.numeric({ precision: 10, scale: 2 }).notNull(),
-		totalPrice: d.numeric({ precision: 10, scale: 2 }).notNull(),
+		quantity: integer("quantity").notNull(),
+		unitPrice: text("unitPrice").notNull(),
+		totalPrice: text("totalPrice").notNull(),
 
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+	},
+	(t) => ({
+		orderIdx: index("order_item_order_idx").on(t.orderId),
+		productIdx: index("order_item_product_idx").on(t.productId),
 	}),
-	(t) => [
-		index("order_item_order_idx").on(t.orderId),
-		index("order_item_product_idx").on(t.productId),
-	],
 );
 
 export const orderStatusHistory = createTable(
 	"order_status_history",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		orderId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => orders.id, { onDelete: "cascade" }),
-		status: d.varchar({ length: 50 }).notNull(),
-		comment: d.text(),
-		notifyCustomer: d.boolean().notNull().default(false),
-		createdBy: d
-			.varchar({ length: 255 })
-			.references(() => users.id, { onDelete: "set null" }),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		orderId: text("orderId").notNull().references(() => orders.id, { onDelete: "cascade" }),
+		status: text("status").notNull(),
+		comment: text("comment"),
+		notifyCustomer: integer("notifyCustomer", { mode: "boolean" }).notNull().default(false),
+		createdBy: text("createdBy").references(() => users.id, { onDelete: "set null" }),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+	},
+	(t) => ({
+		orderIdx: index("order_status_history_order_idx").on(t.orderId),
+		statusIdx: index("order_status_history_status_idx").on(t.status),
+		createdAtIdx: index("order_status_history_created_at_idx").on(t.createdAt),
 	}),
-	(t) => [
-		index("order_status_history_order_idx").on(t.orderId),
-		index("order_status_history_status_idx").on(t.status),
-		index("order_status_history_created_at_idx").on(t.createdAt),
-	],
 );
 
 // ============================================================================
@@ -533,69 +393,46 @@ export const orderStatusHistory = createTable(
 
 export const coupons = createTable(
 	"coupon",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		code: d.varchar({ length: 50 }).notNull().unique(),
-		name: d.varchar({ length: 255 }).notNull(),
-		description: d.text(),
-		type: d.varchar({ length: 50 }).notNull(), // percentage, fixed, free_shipping
-		value: d.numeric({ precision: 10, scale: 2 }).notNull(),
-		minimumAmount: d.numeric({ precision: 10, scale: 2 }),
-		maximumDiscount: d.numeric({ precision: 10, scale: 2 }),
-		usageLimit: d.integer(),
-		usageCount: d.integer().notNull().default(0),
-		userUsageLimit: d.integer().notNull().default(1),
-		active: d.boolean().notNull().default(true),
-		startsAt: d.timestamp({ withTimezone: true }),
-		expiresAt: d.timestamp({ withTimezone: true }),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		code: text("code").notNull().unique(),
+		name: text("name").notNull(),
+		description: text("description"),
+		type: text("type").notNull(), // percentage, fixed, free_shipping
+		value: text("value").notNull(),
+		minimumAmount: text("minimumAmount"),
+		maximumDiscount: text("maximumDiscount"),
+		usageLimit: integer("usageLimit"),
+		usageCount: integer("usageCount").notNull().default(0),
+		userUsageLimit: integer("userUsageLimit").notNull().default(1),
+		active: integer("active", { mode: "boolean" }).notNull().default(true),
+		startsAt: integer("startsAt", { mode: "timestamp" }),
+		expiresAt: integer("expiresAt", { mode: "timestamp" }),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+		updatedAt: integer("updatedAt", { mode: "timestamp" }).$onUpdate(() => new Date()),
+	},
+	(t) => ({
+		codeIdx: index("coupon_code_idx").on(t.code),
+		activeIdx: index("coupon_active_idx").on(t.active),
+		expiresAtIdx: index("coupon_expires_at_idx").on(t.expiresAt),
 	}),
-	(t) => [
-		index("coupon_code_idx").on(t.code),
-		index("coupon_active_idx").on(t.active),
-		index("coupon_expires_at_idx").on(t.expiresAt),
-	],
 );
 
 export const couponUsage = createTable(
 	"coupon_usage",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		couponId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => coupons.id, { onDelete: "cascade" }),
-		userId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		orderId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => orders.id, { onDelete: "cascade" }),
-		discountAmount: d.numeric({ precision: 10, scale: 2 }).notNull(),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		couponId: text("couponId").notNull().references(() => coupons.id, { onDelete: "cascade" }),
+		userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+		orderId: text("orderId").notNull().references(() => orders.id, { onDelete: "cascade" }),
+		discountAmount: text("discountAmount").notNull(),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+	},
+	(t) => ({
+		couponIdx: index("coupon_usage_coupon_idx").on(t.couponId),
+		userIdx: index("coupon_usage_user_idx").on(t.userId),
+		orderIdx: index("coupon_usage_order_idx").on(t.orderId),
 	}),
-	(t) => [
-		index("coupon_usage_coupon_idx").on(t.couponId),
-		index("coupon_usage_user_idx").on(t.userId),
-		index("coupon_usage_order_idx").on(t.orderId),
-	],
 );
 
 // ============================================================================
@@ -604,32 +441,22 @@ export const couponUsage = createTable(
 
 export const notifications = createTable(
 	"notification",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		userId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		type: d.varchar({ length: 50 }).notNull(), // order_update, product_back_in_stock, promotion, etc.
-		title: d.varchar({ length: 255 }).notNull(),
-		message: d.text().notNull(),
-		data: d.jsonb().$type<Record<string, unknown>>(),
-		read: d.boolean().notNull().default(false),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+		type: text("type").notNull(), // order_update, product_back_in_stock, promotion, etc.
+		title: text("title").notNull(),
+		message: text("message").notNull(),
+		data: text("data", { mode: "json" }).$type<Record<string, unknown>>(),
+		read: integer("read", { mode: "boolean" }).notNull().default(false),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+	},
+	(t) => ({
+		userIdx: index("notification_user_idx").on(t.userId),
+		typeIdx: index("notification_type_idx").on(t.type),
+		readIdx: index("notification_read_idx").on(t.read),
+		createdAtIdx: index("notification_created_at_idx").on(t.createdAt),
 	}),
-	(t) => [
-		index("notification_user_idx").on(t.userId),
-		index("notification_type_idx").on(t.type),
-		index("notification_read_idx").on(t.read),
-		index("notification_created_at_idx").on(t.createdAt),
-	],
 );
 
 // ============================================================================
@@ -638,34 +465,22 @@ export const notifications = createTable(
 
 export const productViews = createTable(
 	"product_view",
-	(d) => ({
-		id: d
-			.varchar({ length: 255 })
-			.notNull()
-			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
-		productId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => products.id, { onDelete: "cascade" }),
-		userId: d
-			.varchar({ length: 255 })
-			.references(() => users.id, { onDelete: "set null" }),
-		sessionId: d.varchar({ length: 255 }),
-		ipAddress: d.varchar({ length: 45 }),
-		userAgent: d.text(),
-		referrer: d.varchar({ length: 500 }),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
+	{
+		id: text("id").notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+		productId: text("productId").notNull().references(() => products.id, { onDelete: "cascade" }),
+		userId: text("userId").references(() => users.id, { onDelete: "set null" }),
+		sessionId: text("sessionId"),
+		ipAddress: text("ipAddress"),
+		userAgent: text("userAgent"),
+		referrer: text("referrer"),
+		createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+	},
+	(t) => ({
+		productIdx: index("product_view_product_idx").on(t.productId),
+		userIdx: index("product_view_user_idx").on(t.userId),
+		sessionIdx: index("product_view_session_idx").on(t.sessionId),
+		createdAtIdx: index("product_view_created_at_idx").on(t.createdAt),
 	}),
-	(t) => [
-		index("product_view_product_idx").on(t.productId),
-		index("product_view_user_idx").on(t.userId),
-		index("product_view_session_idx").on(t.sessionId),
-		index("product_view_created_at_idx").on(t.createdAt),
-	],
 );
 
 // ============================================================================
