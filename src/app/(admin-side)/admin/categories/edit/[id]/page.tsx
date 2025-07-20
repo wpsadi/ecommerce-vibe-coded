@@ -99,7 +99,7 @@ export default function EditCategoryPage() {
 	const assignProductsToCategory = useAssignProductsToCategory();
 
 	const handleInputChange = (field: keyof CategoryFormValues, value: any) => {
-		setFormData(prev => ({ ...prev, [field]: value }));
+		setFormData((prev) => ({ ...prev, [field]: value }));
 	};
 
 	const onSubmit = async (e: React.FormEvent) => {
@@ -229,7 +229,9 @@ export default function EditCategoryPage() {
 													id="name"
 													placeholder="e.g. Electronics"
 													value={formData.name}
-													onChange={(e) => handleInputChange("name", e.target.value)}
+													onChange={(e) =>
+														handleInputChange("name", e.target.value)
+													}
 													required
 												/>
 											</div>
@@ -239,7 +241,9 @@ export default function EditCategoryPage() {
 													id="slug"
 													placeholder="e.g. electronics"
 													value={formData.slug}
-													onChange={(e) => handleInputChange("slug", e.target.value)}
+													onChange={(e) =>
+														handleInputChange("slug", e.target.value)
+													}
 													required
 												/>
 											</div>
@@ -250,7 +254,9 @@ export default function EditCategoryPage() {
 												id="description"
 												placeholder="A brief description of the category."
 												value={formData.description || ""}
-												onChange={(e) => handleInputChange("description", e.target.value)}
+												onChange={(e) =>
+													handleInputChange("description", e.target.value)
+												}
 											/>
 										</div>
 										<div className="space-y-2">
@@ -330,7 +336,9 @@ export default function EditCategoryPage() {
 											</div>
 											<Switch
 												checked={formData.active}
-												onCheckedChange={(checked) => handleInputChange("active", checked)}
+												onCheckedChange={(checked) =>
+													handleInputChange("active", checked)
+												}
 											/>
 										</div>
 										<div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
@@ -342,7 +350,9 @@ export default function EditCategoryPage() {
 											</div>
 											<Switch
 												checked={formData.featured}
-												onCheckedChange={(checked) => handleInputChange("featured", checked)}
+												onCheckedChange={(checked) =>
+													handleInputChange("featured", checked)
+												}
 											/>
 										</div>
 									</CardContent>

@@ -1,33 +1,33 @@
-import { db } from "@/server/db";
-import { 
-	categories, 
-	products, 
-	productImages, 
-	productReviews 
-} from "@/server/db/schema";
+import { mockProducts } from "@/lib/mock-data";
+import { MockDatabase } from "@/lib/mock-database";
 import {
 	createTRPCRouter,
 	protectedProcedure,
 	publicProcedure,
 } from "@/server/api/trpc";
+import { db } from "@/server/db";
+import {
+	categories,
+	productImages,
+	productReviews,
+	products,
+} from "@/server/db/schema";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
-import { 
-	and, 
-	avg, 
-	count, 
-	desc, 
-	eq, 
-	ilike, 
+import {
+	and,
 	asc,
-	or,
-	sql,
+	avg,
+	count,
+	desc,
+	eq,
+	ilike,
+	inArray,
 	lt,
 	lte,
-	inArray
+	or,
+	sql,
 } from "drizzle-orm";
-import { mockProducts } from "@/lib/mock-data";
-import { MockDatabase } from "@/lib/mock-database";
+import { z } from "zod";
 
 const productFilterSchema = z.object({
 	categoryId: z.string().optional(),
@@ -53,12 +53,14 @@ const createProductSchema = z.object({
 	stock: z.number().int().min(0).default(0),
 	lowStockThreshold: z.number().int().min(0).default(10),
 	weight: z.string().optional(),
-	dimensions: z.object({
-		length: z.number().optional(),
-		width: z.number().optional(),
-		height: z.number().optional(),
-		unit: z.string().optional(),
-	}).optional(),
+	dimensions: z
+		.object({
+			length: z.number().optional(),
+			width: z.number().optional(),
+			height: z.number().optional(),
+			unit: z.string().optional(),
+		})
+		.optional(),
 	specifications: z.record(z.string()).default({}),
 	tags: z.array(z.string()).default([]),
 	featured: z.boolean().default(false),
@@ -82,7 +84,10 @@ async function withDatabaseFallback<T>(
 	try {
 		return await dbOperation();
 	} catch (error) {
-		console.warn("Database operation failed, falling back to mock data:", error);
+		console.warn(
+			"Database operation failed, falling back to mock data:",
+			error,
+		);
 		return fallbackOperation();
 	}
 }
@@ -112,7 +117,7 @@ export const productsRouter = createTRPCRouter({
 						if (input.categoryId) {
 							whereConditions.push(eq(products.categoryId, input.categoryId));
 						}
-						
+
 						if (input.featured !== undefined) {
 							whereConditions.push(eq(products.featured, input.featured));
 						}
@@ -122,8 +127,8 @@ export const productsRouter = createTRPCRouter({
 								or(
 									ilike(products.name, `%${input.search}%`),
 									ilike(products.description, `%${input.search}%`),
-									ilike(products.shortDescription, `%${input.search}%`)
-								)
+									ilike(products.shortDescription, `%${input.search}%`),
+								),
 							);
 						}
 
@@ -136,26 +141,32 @@ export const productsRouter = createTRPCRouter({
 
 						// Apply filters
 						if (input.categoryId) {
-							filteredProducts = filteredProducts.filter(p => p.categoryId === input.categoryId);
+							filteredProducts = filteredProducts.filter(
+								(p) => p.categoryId === input.categoryId,
+							);
 						}
-						
+
 						if (input.featured !== undefined) {
-							filteredProducts = filteredProducts.filter(p => p.featured === input.featured);
+							filteredProducts = filteredProducts.filter(
+								(p) => p.featured === input.featured,
+							);
 						}
 
 						if (input.search) {
 							const searchLower = input.search.toLowerCase();
-							filteredProducts = filteredProducts.filter(p => 
-								p.name.toLowerCase().includes(searchLower) ||
-								p.description.toLowerCase().includes(searchLower)
+							filteredProducts = filteredProducts.filter(
+								(p) =>
+									p.name.toLowerCase().includes(searchLower) ||
+									p.description.toLowerCase().includes(searchLower),
 							);
 						}
 
 						// Apply sorting
 						if (input.sortBy) {
 							filteredProducts.sort((a, b) => {
-								let aValue: any, bValue: any;
-								
+								let aValue: any;
+								let bValue: any;
+
 								switch (input.sortBy) {
 									case "name":
 										aValue = a.name.toLowerCase();
@@ -188,12 +199,12 @@ export const productsRouter = createTRPCRouter({
 						filteredProducts = filteredProducts.slice(offset, offset + limit);
 
 						// Transform to expected format
-						return filteredProducts.map(product => ({
+						return filteredProducts.map((product) => ({
 							id: product.id,
 							name: product.name,
 							slug: product.id, // Use id as slug for mock
 							description: product.description,
-							shortDescription: product.description.substring(0, 100) + "...",
+							shortDescription: `${product.description.substring(0, 100)}...`,
 							sku: `SKU-${product.id}`,
 							price: product.price.toString(),
 							originalPrice: product.originalPrice?.toString(),
@@ -210,18 +221,20 @@ export const productsRouter = createTRPCRouter({
 								altText: `${product.name} view ${index + 1}`,
 								sortOrder: index,
 								isPrimary: index === 0,
-							})) || [{
-								id: `${product.id}-img-0`,
-								url: product.image,
-								altText: product.name,
-								sortOrder: 0,
-								isPrimary: true,
-							}],
+							})) || [
+								{
+									id: `${product.id}-img-0`,
+									url: product.image,
+									altText: product.name,
+									sortOrder: 0,
+									isPrimary: true,
+								},
+							],
 							primaryImage: product.image,
 							averageRating: product.rating,
 							reviewCount: product.reviews,
 						}));
-					}
+					},
 				);
 			} catch (error) {
 				console.error("Products getAll error:", error);
@@ -269,7 +282,7 @@ export const productsRouter = createTRPCRouter({
 							name: product.name,
 							slug: product.id,
 							description: product.description,
-							shortDescription: product.description.substring(0, 100) + "...",
+							shortDescription: `${product.description.substring(0, 100)}...`,
 							sku: `SKU-${product.id}`,
 							price: product.price.toString(),
 							originalPrice: product.originalPrice?.toString(),
@@ -291,7 +304,7 @@ export const productsRouter = createTRPCRouter({
 							createdAt: new Date(),
 							updatedAt: new Date(),
 						};
-					}
+					},
 				);
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
@@ -340,7 +353,7 @@ export const productsRouter = createTRPCRouter({
 							name: product.name,
 							slug: product.id,
 							description: product.description,
-							shortDescription: product.description.substring(0, 100) + "...",
+							shortDescription: `${product.description.substring(0, 100)}...`,
 							sku: `SKU-${product.id}`,
 							price: product.price.toString(),
 							originalPrice: product.originalPrice?.toString(),
@@ -362,7 +375,7 @@ export const productsRouter = createTRPCRouter({
 							createdAt: new Date(),
 							updatedAt: new Date(),
 						};
-					}
+					},
 				);
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
@@ -395,24 +408,28 @@ export const productsRouter = createTRPCRouter({
 							return [];
 						}
 
-						return product.images?.map((url, index) => ({
-							id: `${product.id}-img-${index}`,
-							productId: product.id,
-							url,
-							altText: `${product.name} view ${index + 1}`,
-							sortOrder: index,
-							isPrimary: index === 0,
-							createdAt: new Date(),
-						})) || [{
-							id: `${product.id}-img-0`,
-							productId: product.id,
-							url: product.image,
-							altText: product.name,
-							sortOrder: 0,
-							isPrimary: true,
-							createdAt: new Date(),
-						}];
-					}
+						return (
+							product.images?.map((url, index) => ({
+								id: `${product.id}-img-${index}`,
+								productId: product.id,
+								url,
+								altText: `${product.name} view ${index + 1}`,
+								sortOrder: index,
+								isPrimary: index === 0,
+								createdAt: new Date(),
+							})) || [
+								{
+									id: `${product.id}-img-0`,
+									productId: product.id,
+									url: product.image,
+									altText: product.name,
+									sortOrder: 0,
+									isPrimary: true,
+									createdAt: new Date(),
+								},
+							]
+						);
+					},
 				);
 			} catch (error) {
 				console.error("Product images error:", error);
@@ -422,12 +439,14 @@ export const productsRouter = createTRPCRouter({
 
 	// Get product reviews
 	getReviews: publicProcedure
-		.input(z.object({ 
-			productId: z.string().min(1),
-			approved: z.boolean().optional(),
-			limit: z.number().optional(),
-			offset: z.number().optional(),
-		}))
+		.input(
+			z.object({
+				productId: z.string().min(1),
+				approved: z.boolean().optional(),
+				limit: z.number().optional(),
+				offset: z.number().optional(),
+			}),
+		)
 		.query(async ({ ctx, input }) => {
 			try {
 				return await withDatabaseFallback(
@@ -442,25 +461,28 @@ export const productsRouter = createTRPCRouter({
 						}
 
 						// Mock reviews
-						return Array.from({ length: Math.min(5, product.reviews) }, (_, i) => ({
-							id: `review-${product.id}-${i}`,
-							productId: product.id,
-							userId: `user-${i + 1}`,
-							orderId: null,
-							rating: Math.floor(Math.random() * 2) + 4, // 4-5 stars
-							title: `Great product! Review ${i + 1}`,
-							comment: `This is a great product. Review number ${i + 1}`,
-							verified: true,
-							helpful: Math.floor(Math.random() * 10),
-							reported: false,
-							approved: true,
-							createdAt: new Date(),
-							updatedAt: new Date(),
-							user: {
-								name: `User ${i + 1}`,
-							},
-						}));
-					}
+						return Array.from(
+							{ length: Math.min(5, product.reviews) },
+							(_, i) => ({
+								id: `review-${product.id}-${i}`,
+								productId: product.id,
+								userId: `user-${i + 1}`,
+								orderId: null,
+								rating: Math.floor(Math.random() * 2) + 4, // 4-5 stars
+								title: `Great product! Review ${i + 1}`,
+								comment: `This is a great product. Review number ${i + 1}`,
+								verified: true,
+								helpful: Math.floor(Math.random() * 10),
+								reported: false,
+								approved: true,
+								createdAt: new Date(),
+								updatedAt: new Date(),
+								user: {
+									name: `User ${i + 1}`,
+								},
+							}),
+						);
+					},
 				);
 			} catch (error) {
 				console.error("Product reviews error:", error);
@@ -474,7 +496,7 @@ export const productsRouter = createTRPCRouter({
 		.mutation(async ({ ctx, input }) => {
 			try {
 				checkAdminPermission(ctx);
-				
+
 				return await withDatabaseFallback(
 					async () => {
 						// Database operation
@@ -505,7 +527,9 @@ export const productsRouter = createTRPCRouter({
 						const newProduct = MockDatabase.createProduct({
 							name: input.name,
 							price: Number(input.price),
-							originalPrice: input.originalPrice ? Number(input.originalPrice) : undefined,
+							originalPrice: input.originalPrice
+								? Number(input.originalPrice)
+								: undefined,
 							image: "/placeholder.svg",
 							category: "General", // Will be updated based on categoryId
 							categoryId: input.categoryId,
@@ -545,7 +569,7 @@ export const productsRouter = createTRPCRouter({
 							createdAt: new Date(),
 							updatedAt: new Date(),
 						};
-					}
+					},
 				);
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
@@ -564,18 +588,22 @@ export const productsRouter = createTRPCRouter({
 		.mutation(async ({ ctx, input }) => {
 			try {
 				checkAdminPermission(ctx);
-				
+
 				return await withDatabaseFallback(
 					async () => {
 						// Database operation
 						const { id, ...updateData } = input;
-						
+
 						// Convert price to numeric for database
 						const processedData = {
 							...updateData,
 							price: updateData.price ? updateData.price : undefined,
-							originalPrice: updateData.originalPrice ? updateData.originalPrice : undefined,
-							costPrice: updateData.costPrice ? updateData.costPrice : undefined,
+							originalPrice: updateData.originalPrice
+								? updateData.originalPrice
+								: undefined,
+							costPrice: updateData.costPrice
+								? updateData.costPrice
+								: undefined,
 						};
 
 						const updatedProduct = await ctx.db
@@ -599,19 +627,25 @@ export const productsRouter = createTRPCRouter({
 					() => {
 						// Fallback: Update using persistent mock database
 						const { id, ...updateData } = input;
-						
+
 						const updates: Partial<any> = {};
 						if (updateData.name) updates.name = updateData.name;
-						if (updateData.description) updates.description = updateData.description;
+						if (updateData.description)
+							updates.description = updateData.description;
 						if (updateData.price) updates.price = Number(updateData.price);
-						if (updateData.originalPrice) updates.originalPrice = Number(updateData.originalPrice);
-						if (updateData.categoryId) updates.categoryId = updateData.categoryId;
-						if (updateData.stock !== undefined) updates.stock = updateData.stock;
-						if (updateData.featured !== undefined) updates.featured = updateData.featured;
-						if (updateData.specifications) updates.specifications = updateData.specifications;
+						if (updateData.originalPrice)
+							updates.originalPrice = Number(updateData.originalPrice);
+						if (updateData.categoryId)
+							updates.categoryId = updateData.categoryId;
+						if (updateData.stock !== undefined)
+							updates.stock = updateData.stock;
+						if (updateData.featured !== undefined)
+							updates.featured = updateData.featured;
+						if (updateData.specifications)
+							updates.specifications = updateData.specifications;
 
 						const updatedProduct = MockDatabase.updateProduct(id, updates);
-						
+
 						if (!updatedProduct) {
 							throw new TRPCError({
 								code: "NOT_FOUND",
@@ -632,7 +666,7 @@ export const productsRouter = createTRPCRouter({
 							updatedAt: new Date(),
 							createdAt: new Date(),
 						};
-					}
+					},
 				);
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
@@ -672,7 +706,7 @@ export const productsRouter = createTRPCRouter({
 					() => {
 						// Fallback: Delete using persistent mock database
 						const deletedProduct = MockDatabase.deleteProduct(input.id);
-						
+
 						if (!deletedProduct) {
 							throw new TRPCError({
 								code: "NOT_FOUND",
@@ -680,14 +714,14 @@ export const productsRouter = createTRPCRouter({
 							});
 						}
 
-						return { 
-							success: true, 
+						return {
+							success: true,
 							deletedProduct: {
 								id: deletedProduct.id,
 								name: deletedProduct.name,
-							}
+							},
 						};
-					}
+					},
 				);
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
@@ -702,17 +736,20 @@ export const productsRouter = createTRPCRouter({
 
 	// Update product stock
 	updateStock: protectedProcedure
-		.input(z.object({ 
-			id: z.string().min(1),
-			stock: z.number().int().min(0),
-		}))
+		.input(
+			z.object({
+				id: z.string().min(1),
+				stock: z.number().int().min(0),
+			}),
+		)
 		.mutation(async ({ ctx, input }) => {
 			try {
 				checkAdminPermission(ctx);
 
 				throw new TRPCError({
 					code: "NOT_IMPLEMENTED",
-					message: "Stock update is not yet implemented. Database setup required.",
+					message:
+						"Stock update is not yet implemented. Database setup required.",
 				});
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
@@ -734,7 +771,8 @@ export const productsRouter = createTRPCRouter({
 
 				throw new TRPCError({
 					code: "NOT_IMPLEMENTED",
-					message: "Low stock check is not yet implemented. Database setup required.",
+					message:
+						"Low stock check is not yet implemented. Database setup required.",
 				});
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
@@ -749,17 +787,20 @@ export const productsRouter = createTRPCRouter({
 
 	// Assign products to category (admin only)
 	assignToCategory: protectedProcedure
-		.input(z.object({ 
-			productIds: z.array(z.string().min(1)),
-			categoryId: z.string().min(1),
-		}))
+		.input(
+			z.object({
+				productIds: z.array(z.string().min(1)),
+				categoryId: z.string().min(1),
+			}),
+		)
 		.mutation(async ({ ctx, input }) => {
 			try {
 				checkAdminPermission(ctx);
 
 				throw new TRPCError({
 					code: "NOT_IMPLEMENTED",
-					message: "Product assignment is not yet implemented. Database setup required.",
+					message:
+						"Product assignment is not yet implemented. Database setup required.",
 				});
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;

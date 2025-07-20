@@ -12,7 +12,6 @@ import {
 	useCreateAddress,
 	useDeleteAddress,
 	useProfile,
-	useUpdateAddress,
 	useUpdateProfile,
 } from "@/hooks/use-trpc-hooks";
 import type { NewAddress } from "@/server/db/schema";
@@ -26,13 +25,24 @@ export default function ProfilePage() {
 	const router = useRouter();
 
 	const [editing, setEditing] = useState(false);
+	const [addingAddress, setAddingAddress] = useState(false);
 	const [formData, setFormData] = useState({
 		name: "",
 		email: "",
 		phone: "",
 	});
+	const [newAddress, setNewAddress] = useState<NewAddress>({
+		type: "shipping",
+		userId: user ? user.id : "",
+		firstName: "",
+		lastName: "",
+		addressLine1: "",
+		city: "",
+		state: "",
+		postalCode: "",
+		country: "India",
+	});
 
-	// tRPC Hooks
 	const { data: profile, isPending: profileLoading } = useProfile();
 	const updateProfile = useUpdateProfile();
 	const { data: addresses } = useAddresses("shipping");
@@ -61,9 +71,7 @@ export default function ProfilePage() {
 				phone: formData.phone,
 			});
 			setEditing(false);
-		} catch (error) {
-			// Error handling is done in the hook
-		}
+		} catch {}
 	};
 
 	const handleCancel = () => {
@@ -77,37 +85,44 @@ export default function ProfilePage() {
 		setEditing(false);
 	};
 
-	const handleAddAddress = async (addressData: NewAddress) => {
+	const handleAddAddress = async () => {
 		try {
 			await createAddress.mutateAsync({
-				...addressData,
-				country: addressData.country || "India",
-				type: (addressData.type as "shipping" | "billing") || "shipping",
-				phone: addressData.phone || undefined,
-				company: addressData.company || undefined,
-				addressLine2: addressData.addressLine2 || undefined,
+				...newAddress,
+				phone: newAddress.phone || undefined,
+				company: newAddress.company || undefined,
+				type: newAddress!.type! === "shipping" ? "shipping" : "billing",
+				addressLine2: newAddress.addressLine2 || undefined,
+				country: newAddress.country || "India", // Ensure country is always a string
 			});
-		} catch (error) {
-			// Error handling is done in the hook
-		}
+			setNewAddress({
+				type: "shipping",
+				userId: user!.id,
+				firstName: "",
+				lastName: "",
+				addressLine1: "",
+				city: "",
+				state: "",
+				postalCode: "",
+				country: "India",
+			});
+			setAddingAddress(false);
+			toast.success("Address added");
+		} catch {}
 	};
 
 	const handleDeleteAddress = async (addressId: string) => {
 		try {
 			await deleteAddress.mutateAsync({ id: addressId });
-		} catch (error) {
-			// Error handling is done in the hook
-		}
+		} catch {}
 	};
 
 	if (!user || profileLoading) {
 		return (
 			<div className="min-h-screen bg-background">
 				<Header />
-				<main className="container mx-auto px-4 py-8">
-					<div className="text-center">
-						<h1 className="mb-4 font-bold text-2xl">Loading...</h1>
-					</div>
+				<main className="container mx-auto px-4 py-8 text-center">
+					<h1 className="mb-4 font-bold text-2xl">Loading...</h1>
 				</main>
 			</div>
 		);
@@ -116,7 +131,6 @@ export default function ProfilePage() {
 	return (
 		<div className="min-h-screen bg-background">
 			<Header />
-
 			<main className="container mx-auto px-4 py-8">
 				<div className="mx-auto max-w-4xl">
 					<h1 className="mb-8 font-bold text-3xl">My Profile</h1>
@@ -125,9 +139,9 @@ export default function ProfilePage() {
 						<TabsList>
 							<TabsTrigger value="profile">Profile Information</TabsTrigger>
 							<TabsTrigger value="addresses">Addresses</TabsTrigger>
-							<TabsTrigger value="security">Security</TabsTrigger>
 						</TabsList>
 
+						{/* Profile Tab */}
 						<TabsContent value="profile">
 							<Card>
 								<CardHeader>
@@ -149,6 +163,7 @@ export default function ProfilePage() {
 								</CardHeader>
 								<CardContent className="space-y-6">
 									<div className="grid gap-6 md:grid-cols-2">
+										{/* Name */}
 										<div>
 											<Label htmlFor="name">Full Name</Label>
 											{editing ? (
@@ -163,41 +178,23 @@ export default function ProfilePage() {
 													}
 												/>
 											) : (
-												<div className="mt-2 flex items-center gap-2">
-													<User className="h-4 w-4 text-muted-foreground" />
-													<span>{profile?.name || "Not provided"}</span>
-												</div>
+												<p className="mt-2">
+													{profile?.name || "Not provided"}
+												</p>
 											)}
 										</div>
 
+										{/* Email */}
 										<div>
-											<Label htmlFor="email">Email Address</Label>
-											{editing ? (
-												<Input
-													id="email"
-													type="email"
-													value={formData.email}
-													onChange={(e) =>
-														setFormData((prev) => ({
-															...prev,
-															email: e.target.value,
-														}))
-													}
-													disabled // Email should not be editable
-												/>
-											) : (
-												<div className="mt-2 flex items-center gap-2">
-													<Mail className="h-4 w-4 text-muted-foreground" />
-													<span>{profile?.email || "Not provided"}</span>
-												</div>
-											)}
+											<Label>Email Address</Label>
+											<p className="mt-2">{profile?.email || "Not provided"}</p>
 										</div>
 
+										{/* Phone */}
 										<div>
-											<Label htmlFor="phone">Phone Number</Label>
+											<Label>Phone</Label>
 											{editing ? (
 												<Input
-													id="phone"
 													value={formData.phone}
 													onChange={(e) =>
 														setFormData((prev) => ({
@@ -205,35 +202,28 @@ export default function ProfilePage() {
 															phone: e.target.value,
 														}))
 													}
-													placeholder="Enter phone number"
 												/>
 											) : (
-												<div className="mt-2 flex items-center gap-2">
-													<Phone className="h-4 w-4 text-muted-foreground" />
-													<span>{profile?.phone || "Not provided"}</span>
-												</div>
+												<p className="mt-2">
+													{profile?.phone || "Not provided"}
+												</p>
 											)}
 										</div>
 
+										{/* Joined At */}
 										<div>
 											<Label>Member Since</Label>
-											<div className="mt-2 flex items-center gap-2">
-												<Calendar className="h-4 w-4 text-muted-foreground" />
-												<span>
-													{profile?.createdAt
-														? new Date(profile.createdAt).toLocaleDateString()
-														: "Not available"}
-												</span>
-											</div>
+											<p className="mt-2">
+												{profile?.createdAt
+													? new Date(profile.createdAt).toLocaleDateString()
+													: "N/A"}
+											</p>
 										</div>
 									</div>
 
 									{editing && (
 										<div className="flex gap-4">
-											<Button
-												onClick={handleSave}
-												disabled={updateProfile.isPending}
-											>
+											<Button onClick={handleSave}>
 												{updateProfile.isPending ? "Saving..." : "Save Changes"}
 											</Button>
 											<Button variant="outline" onClick={handleCancel}>
@@ -245,108 +235,132 @@ export default function ProfilePage() {
 							</Card>
 						</TabsContent>
 
+						{/* Address Tab */}
 						<TabsContent value="addresses">
 							<Card>
-								<CardHeader>
-									<div className="flex items-center justify-between">
-										<CardTitle>Saved Addresses</CardTitle>
-										<Button
-											onClick={() => {
-												/* TODO: Add address form */
-											}}
-										>
-											<Plus className="mr-2 h-4 w-4" />
-											Add New Address
-										</Button>
-									</div>
+								<CardHeader className="flex items-center justify-between">
+									<CardTitle>Saved Addresses</CardTitle>
+									<Button onClick={() => setAddingAddress(true)}>
+										<Plus className="mr-2 h-4 w-4" />
+										Add Address
+									</Button>
 								</CardHeader>
+
 								<CardContent>
 									{addresses && addresses.length > 0 ? (
 										<div className="space-y-4">
 											{addresses.map((address) => (
-												<div key={address.id} className="rounded-lg border p-4">
-													<div className="flex items-start justify-between">
-														<div>
-															<h4 className="font-medium">
-																{address.firstName} {address.lastName}
-															</h4>
-															<p className="mt-1 text-muted-foreground text-sm">
-																{address.addressLine1}
-																{address.addressLine2 &&
-																	`, ${address.addressLine2}`}
-															</p>
-															<p className="text-muted-foreground text-sm">
-																{address.city}, {address.state}{" "}
-																{address.postalCode}
-															</p>
-															<p className="text-muted-foreground text-sm">
-																{address.country}
-															</p>
-															{address.phone && (
-																<p className="text-muted-foreground text-sm">
-																	Phone: {address.phone}
-																</p>
-															)}
-														</div>
-														<div className="flex gap-2">
-															<Button variant="outline" size="sm">
-																Edit
-															</Button>
-															<Button
-																variant="outline"
-																size="sm"
-																onClick={() => handleDeleteAddress(address.id)}
-																disabled={deleteAddress.isPending}
-															>
-																{deleteAddress.isPending
-																	? "Deleting..."
-																	: "Delete"}
-															</Button>
-														</div>
+												<div key={address.id} className="rounded border p-4">
+													<h4 className="font-medium">
+														{address.firstName} {address.lastName}
+													</h4>
+													<p>
+														{address.addressLine1}
+														{address.addressLine2 &&
+															`, ${address.addressLine2}`}
+													</p>
+													<p>
+														{address.city}, {address.state} {address.postalCode}
+													</p>
+													<p>{address.country}</p>
+													{address.phone && <p>Phone: {address.phone}</p>}
+
+													<div className="mt-2 flex gap-2">
+														<Button variant="outline" size="sm" disabled>
+															Edit
+														</Button>
+														<Button
+															variant="outline"
+															size="sm"
+															onClick={() => handleDeleteAddress(address.id)}
+														>
+															Delete
+														</Button>
 													</div>
 												</div>
 											))}
 										</div>
 									) : (
-										<div className="py-8 text-center">
-											<p className="mb-4 text-muted-foreground">
-												No saved addresses yet
-											</p>
-											<Button>
-												<Plus className="mr-2 h-4 w-4" />
-												Add New Address
-											</Button>
+										<p className="text-muted-foreground">No addresses saved.</p>
+									)}
+
+									{/* New Address Form */}
+									{addingAddress && (
+										<div className="mt-6 space-y-4 border-t pt-4">
+											<h4 className="font-semibold">Add New Address</h4>
+											<div className="grid gap-4 md:grid-cols-2">
+												<Input
+													placeholder="First Name"
+													value={newAddress.firstName}
+													onChange={(e) =>
+														setNewAddress((prev) => ({
+															...prev,
+															firstName: e.target.value,
+														}))
+													}
+												/>
+												<Input
+													placeholder="Last Name"
+													value={newAddress.lastName}
+													onChange={(e) =>
+														setNewAddress((prev) => ({
+															...prev,
+															lastName: e.target.value,
+														}))
+													}
+												/>
+												<Input
+													placeholder="Address Line 1"
+													value={newAddress.addressLine1}
+													onChange={(e) =>
+														setNewAddress((prev) => ({
+															...prev,
+															addressLine1: e.target.value,
+														}))
+													}
+												/>
+												<Input
+													placeholder="City"
+													value={newAddress.city}
+													onChange={(e) =>
+														setNewAddress((prev) => ({
+															...prev,
+															city: e.target.value,
+														}))
+													}
+												/>
+												<Input
+													placeholder="State"
+													value={newAddress.state}
+													onChange={(e) =>
+														setNewAddress((prev) => ({
+															...prev,
+															state: e.target.value,
+														}))
+													}
+												/>
+												<Input
+													placeholder="Postal Code"
+													value={newAddress.postalCode}
+													onChange={(e) =>
+														setNewAddress((prev) => ({
+															...prev,
+															postalCode: e.target.value,
+														}))
+													}
+												/>
+											</div>
+											<div className="flex gap-2">
+												<Button onClick={handleAddAddress}>Save</Button>
+												<Button
+													variant="outline"
+													onClick={() => setAddingAddress(false)}
+												>
+													Cancel
+												</Button>
+											</div>
 										</div>
 									)}
-								</CardContent>
-							</Card>
-						</TabsContent>
-
-						<TabsContent value="security">
-							<Card>
-								<CardHeader>
-									<CardTitle>Security Settings</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-4">
-									<div className="flex items-center justify-between rounded-lg border p-4">
-										<div>
-											<h4 className="font-medium">Password</h4>
-											<p className="text-muted-foreground text-sm">
-												Last updated 3 months ago
-											</p>
-										</div>
-										<Button variant="outline">Change Password</Button>
-									</div>
-
-									<div className="flex items-center justify-between rounded-lg border p-4">
-										<div>
-											<h4 className="font-medium">Two-Factor Authentication</h4>
-											<p className="text-muted-foreground text-sm">
-												Add an extra layer of security
-											</p>
-										</div>
-										<Button variant="outline">Enable 2FA</Button>
-									</div>
 								</CardContent>
 							</Card>
 						</TabsContent>

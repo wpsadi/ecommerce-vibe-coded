@@ -1,14 +1,14 @@
-import { db } from "@/server/db";
-import { categories, products } from "@/server/db/schema";
+import { categories as mockCategories } from "@/lib/mock-data";
 import {
 	createTRPCRouter,
 	protectedProcedure,
 	publicProcedure,
 } from "@/server/api/trpc";
+import { db } from "@/server/db";
+import { categories, products } from "@/server/db/schema";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
 import { and, count, desc, eq, sql } from "drizzle-orm";
-import { categories as mockCategories } from "@/lib/mock-data";
+import { z } from "zod";
 
 const createCategorySchema = z.object({
 	name: z.string().min(1).max(255),
@@ -35,7 +35,10 @@ async function withDatabaseFallback<T>(
 	try {
 		return await dbOperation();
 	} catch (error) {
-		console.warn("Database operation failed, falling back to mock data:", error);
+		console.warn(
+			"Database operation failed, falling back to mock data:",
+			error,
+		);
 		return fallbackOperation();
 	}
 }
@@ -75,22 +78,25 @@ export const categoriesRouter = createTRPCRouter({
 							productCount: sql<number>`COALESCE(COUNT(${products.id}), 0)`,
 						})
 						.from(categories)
-						.leftJoin(products, and(
-							eq(products.categoryId, categories.id),
-							eq(products.active, true)
-						))
+						.leftJoin(
+							products,
+							and(
+								eq(products.categoryId, categories.id),
+								eq(products.active, true),
+							),
+						)
 						.where(eq(categories.active, true))
 						.groupBy(categories.id)
 						.orderBy(categories.sortOrder, categories.name);
 
-					return categoriesWithCounts.map(cat => ({
+					return categoriesWithCounts.map((cat) => ({
 						...cat,
 						productCount: Number(cat.productCount),
 					}));
 				},
 				() => {
 					// Fallback to mock data
-					return mockCategories.map(cat => ({
+					return mockCategories.map((cat) => ({
 						id: cat.id,
 						name: cat.name,
 						slug: cat.id,
@@ -106,7 +112,7 @@ export const categoriesRouter = createTRPCRouter({
 						createdAt: new Date(cat.createdAt),
 						updatedAt: new Date(cat.updatedAt),
 					}));
-				}
+				},
 			);
 		} catch (error) {
 			console.error("Categories getAll error:", error);
@@ -141,18 +147,20 @@ export const categoriesRouter = createTRPCRouter({
 							productCount: sql<number>`COALESCE(COUNT(${products.id}), 0)`,
 						})
 						.from(categories)
-						.leftJoin(products, and(
-							eq(products.categoryId, categories.id),
-							eq(products.active, true)
-						))
-						.where(and(
-							eq(categories.active, true),
-							eq(categories.featured, true)
-						))
+						.leftJoin(
+							products,
+							and(
+								eq(products.categoryId, categories.id),
+								eq(products.active, true),
+							),
+						)
+						.where(
+							and(eq(categories.active, true), eq(categories.featured, true)),
+						)
 						.groupBy(categories.id)
 						.orderBy(categories.sortOrder, categories.name);
 
-					return categoriesWithCounts.map(cat => ({
+					return categoriesWithCounts.map((cat) => ({
 						...cat,
 						productCount: Number(cat.productCount),
 					}));
@@ -160,8 +168,8 @@ export const categoriesRouter = createTRPCRouter({
 				() => {
 					// Fallback to mock data
 					return mockCategories
-						.filter(cat => cat.featured)
-						.map(cat => ({
+						.filter((cat) => cat.featured)
+						.map((cat) => ({
 							id: cat.id,
 							name: cat.name,
 							slug: cat.id,
@@ -177,7 +185,7 @@ export const categoriesRouter = createTRPCRouter({
 							createdAt: new Date(cat.createdAt),
 							updatedAt: new Date(cat.updatedAt),
 						}));
-				}
+				},
 			);
 		} catch (error) {
 			console.error("Categories getFeatured error:", error);
@@ -214,10 +222,13 @@ export const categoriesRouter = createTRPCRouter({
 								productCount: sql<number>`COALESCE(COUNT(${products.id}), 0)`,
 							})
 							.from(categories)
-							.leftJoin(products, and(
-								eq(products.categoryId, categories.id),
-								eq(products.active, true)
-							))
+							.leftJoin(
+								products,
+								and(
+									eq(products.categoryId, categories.id),
+									eq(products.active, true),
+								),
+							)
 							.where(eq(categories.id, input.id))
 							.groupBy(categories.id)
 							.limit(1);
@@ -236,7 +247,7 @@ export const categoriesRouter = createTRPCRouter({
 					},
 					() => {
 						// Fallback to mock data
-						const category = mockCategories.find(cat => cat.id === input.id);
+						const category = mockCategories.find((cat) => cat.id === input.id);
 						if (!category) {
 							throw new TRPCError({
 								code: "NOT_FOUND",
@@ -260,7 +271,7 @@ export const categoriesRouter = createTRPCRouter({
 							createdAt: new Date(category.createdAt),
 							updatedAt: new Date(category.updatedAt),
 						};
-					}
+					},
 				);
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
@@ -298,10 +309,13 @@ export const categoriesRouter = createTRPCRouter({
 								productCount: sql<number>`COALESCE(COUNT(${products.id}), 0)`,
 							})
 							.from(categories)
-							.leftJoin(products, and(
-								eq(products.categoryId, categories.id),
-								eq(products.active, true)
-							))
+							.leftJoin(
+								products,
+								and(
+									eq(products.categoryId, categories.id),
+									eq(products.active, true),
+								),
+							)
 							.where(eq(categories.slug, input.slug))
 							.groupBy(categories.id)
 							.limit(1);
@@ -320,7 +334,9 @@ export const categoriesRouter = createTRPCRouter({
 					},
 					() => {
 						// Fallback to mock data (use id as slug for mock)
-						const category = mockCategories.find(cat => cat.id === input.slug);
+						const category = mockCategories.find(
+							(cat) => cat.id === input.slug,
+						);
 						if (!category) {
 							throw new TRPCError({
 								code: "NOT_FOUND",
@@ -344,7 +360,7 @@ export const categoriesRouter = createTRPCRouter({
 							createdAt: new Date(category.createdAt),
 							updatedAt: new Date(category.updatedAt),
 						};
-					}
+					},
 				);
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
@@ -367,7 +383,8 @@ export const categoriesRouter = createTRPCRouter({
 				// For now, just return a mock response since database isn't set up
 				throw new TRPCError({
 					code: "NOT_IMPLEMENTED",
-					message: "Category creation is not yet implemented. Database setup required.",
+					message:
+						"Category creation is not yet implemented. Database setup required.",
 				});
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
@@ -389,7 +406,8 @@ export const categoriesRouter = createTRPCRouter({
 
 				throw new TRPCError({
 					code: "NOT_IMPLEMENTED",
-					message: "Category update is not yet implemented. Database setup required.",
+					message:
+						"Category update is not yet implemented. Database setup required.",
 				});
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
@@ -411,7 +429,8 @@ export const categoriesRouter = createTRPCRouter({
 
 				throw new TRPCError({
 					code: "NOT_IMPLEMENTED",
-					message: "Category deletion is not yet implemented. Database setup required.",
+					message:
+						"Category deletion is not yet implemented. Database setup required.",
 				});
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
@@ -433,7 +452,8 @@ export const categoriesRouter = createTRPCRouter({
 
 				throw new TRPCError({
 					code: "NOT_IMPLEMENTED",
-					message: "Toggle featured is not yet implemented. Database setup required.",
+					message:
+						"Toggle featured is not yet implemented. Database setup required.",
 				});
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
