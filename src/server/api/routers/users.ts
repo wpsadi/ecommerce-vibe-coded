@@ -75,6 +75,7 @@ export const usersRouter = createTRPCRouter({
 
 				return newUser[0];
 			} catch (error) {
+				console.error("Detailed signup error:", error);
 				if (error instanceof TRPCError) throw error;
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
