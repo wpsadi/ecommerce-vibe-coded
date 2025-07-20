@@ -12,9 +12,11 @@ import {
 	useCreateAddress,
 	useDeleteAddress,
 	useProfile,
+	useUpdateAddress,
 	useUpdateProfile,
 } from "@/hooks/use-trpc-hooks";
 import type { NewAddress } from "@/server/db/schema";
+import { api } from "@/trpc/react";
 import { Calendar, Edit, Mail, Phone, Plus, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -23,7 +25,7 @@ import { toast } from "sonner";
 export default function ProfilePage() {
 	const { user } = useAuth();
 	const router = useRouter();
-
+	const utils = api.useUtils();
 	const [editing, setEditing] = useState(false);
 	const [addingAddress, setAddingAddress] = useState(false);
 	const [formData, setFormData] = useState({
@@ -41,6 +43,19 @@ export default function ProfilePage() {
 		state: "",
 		postalCode: "",
 		country: "India",
+	});
+	const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+	const [editAddressData, setEditAddressData] = useState<Partial<NewAddress>>(
+		{},
+	);
+	const updateAddressTrpc = api.users.updateAddress.useMutation({
+		onSuccess: () => {
+			toast.success("Address updated successfully!");
+			utils.users.getAddresses.invalidate();
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to update address");
+		},
 	});
 
 	const { data: profile, isPending: profileLoading } = useProfile();
@@ -109,6 +124,48 @@ export default function ProfilePage() {
 			setAddingAddress(false);
 			toast.success("Address added");
 		} catch {}
+	};
+
+	const handleEditAddress = (address: any) => {
+		setEditingAddressId(address.id);
+		setEditAddressData({ ...address });
+	};
+
+	const handleUpdateAddress = async () => {
+		if (!editingAddressId) return;
+		try {
+			// Find the original address to fill missing fields
+			const original = addresses?.find((a) => a.id === editingAddressId);
+			await updateAddressTrpc.mutateAsync({
+				id: editingAddressId,
+				type:
+					(editAddressData.type === "shipping" ||
+					editAddressData.type === "billing"
+						? (editAddressData.type as "shipping" | "billing")
+						: original?.type || "shipping") === "shipping"
+						? "shipping"
+						: "billing",
+				country: editAddressData.country || original?.country || "India",
+				firstName: editAddressData.firstName ?? original?.firstName ?? "",
+				lastName: editAddressData.lastName ?? original?.lastName ?? "",
+				addressLine1:
+					editAddressData.addressLine1 ?? original?.addressLine1 ?? "",
+				city: editAddressData.city ?? original?.city ?? "",
+				state: editAddressData.state ?? original?.state ?? "",
+				postalCode: editAddressData.postalCode ?? original?.postalCode ?? "",
+				addressLine2:
+					editAddressData.addressLine2 ?? original?.addressLine2 ?? undefined,
+				phone: editAddressData.phone ?? original?.phone ?? "",
+				company: editAddressData.company ?? original?.company ?? undefined,
+			});
+			setEditingAddressId(null);
+			setEditAddressData({});
+		} catch {}
+	};
+
+	const handleCancelEditAddress = () => {
+		setEditingAddressId(null);
+		setEditAddressData({});
 	};
 
 	const handleDeleteAddress = async (addressId: string) => {
@@ -251,32 +308,130 @@ export default function ProfilePage() {
 										<div className="space-y-4">
 											{addresses.map((address) => (
 												<div key={address.id} className="rounded border p-4">
-													<h4 className="font-medium">
-														{address.firstName} {address.lastName}
-													</h4>
-													<p>
-														{address.addressLine1}
-														{address.addressLine2 &&
-															`, ${address.addressLine2}`}
-													</p>
-													<p>
-														{address.city}, {address.state} {address.postalCode}
-													</p>
-													<p>{address.country}</p>
-													{address.phone && <p>Phone: {address.phone}</p>}
-
-													<div className="mt-2 flex gap-2">
-														<Button variant="outline" size="sm" disabled>
-															Edit
-														</Button>
-														<Button
-															variant="outline"
-															size="sm"
-															onClick={() => handleDeleteAddress(address.id)}
-														>
-															Delete
-														</Button>
-													</div>
+													{editingAddressId === address.id ? (
+														<div className="space-y-2">
+															<h4 className="font-medium">Edit Address</h4>
+															<div className="grid gap-2 md:grid-cols-2">
+																<Input
+																	placeholder="First Name"
+																	value={editAddressData.firstName || ""}
+																	onChange={(e) =>
+																		setEditAddressData((prev) => ({
+																			...prev,
+																			firstName: e.target.value,
+																		}))
+																	}
+																/>
+																<Input
+																	placeholder="Last Name"
+																	value={editAddressData.lastName || ""}
+																	onChange={(e) =>
+																		setEditAddressData((prev) => ({
+																			...prev,
+																			lastName: e.target.value,
+																		}))
+																	}
+																/>
+																<Input
+																	placeholder="Address Line 1"
+																	value={editAddressData.addressLine1 || ""}
+																	onChange={(e) =>
+																		setEditAddressData((prev) => ({
+																			...prev,
+																			addressLine1: e.target.value,
+																		}))
+																	}
+																/>
+																<Input
+																	placeholder="City"
+																	value={editAddressData.city || ""}
+																	onChange={(e) =>
+																		setEditAddressData((prev) => ({
+																			...prev,
+																			city: e.target.value,
+																		}))
+																	}
+																/>
+																<Input
+																	placeholder="State"
+																	value={editAddressData.state || ""}
+																	onChange={(e) =>
+																		setEditAddressData((prev) => ({
+																			...prev,
+																			state: e.target.value,
+																		}))
+																	}
+																/>
+																<Input
+																	placeholder="Postal Code"
+																	value={editAddressData.postalCode || ""}
+																	onChange={(e) =>
+																		setEditAddressData((prev) => ({
+																			...prev,
+																			postalCode: e.target.value,
+																		}))
+																	}
+																/>
+																<Input
+																	placeholder="Country"
+																	value={editAddressData.country || "India"}
+																	onChange={(e) =>
+																		setEditAddressData((prev) => ({
+																			...prev,
+																			country: e.target.value,
+																		}))
+																	}
+																/>
+															</div>
+															<div className="mt-2 flex gap-2">
+																<Button size="sm" onClick={handleUpdateAddress}>
+																	Save
+																</Button>
+																<Button
+																	size="sm"
+																	variant="outline"
+																	onClick={handleCancelEditAddress}
+																>
+																	Cancel
+																</Button>
+															</div>
+														</div>
+													) : (
+														<>
+															<h4 className="font-medium">
+																{address.firstName} {address.lastName}
+															</h4>
+															<p>
+																{address.addressLine1}
+																{address.addressLine2 &&
+																	`, ${address.addressLine2}`}
+															</p>
+															<p>
+																{address.city}, {address.state}{" "}
+																{address.postalCode}
+															</p>
+															<p>{address.country}</p>
+															{address.phone && <p>Phone: {address.phone}</p>}
+															<div className="mt-2 flex gap-2">
+																<Button
+																	variant="outline"
+																	size="sm"
+																	onClick={() => handleEditAddress(address)}
+																>
+																	Edit
+																</Button>
+																<Button
+																	variant="outline"
+																	size="sm"
+																	onClick={() =>
+																		handleDeleteAddress(address.id)
+																	}
+																>
+																	Delete
+																</Button>
+															</div>
+														</>
+													)}
 												</div>
 											))}
 										</div>
