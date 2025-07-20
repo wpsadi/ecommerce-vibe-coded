@@ -1,75 +1,64 @@
-import { MockDatabase } from "@/lib/mock-database";
 import {
 	createTRPCRouter,
 	protectedProcedure,
 	publicProcedure,
 } from "@/server/api/trpc";
+import { db } from "@/server/db";
+import { cartItems, products, productImages } from "@/server/db/schema";
 import { TRPCError } from "@trpc/server";
+import { and, eq, sum } from "drizzle-orm";
 import { z } from "zod";
-
-// Mock cart storage (in a real app, this would be in session/database)
-// Using Map for better performance and to simulate database behavior
-const mockCartStorage = new Map<
-	string,
-	Array<{
-		id: string;
-		userId: string;
-		productId: string;
-		quantity: number;
-		createdAt: Date;
-		updatedAt: Date;
-	}>
->();
-
-// Helper function to get user's cart
-function getUserCart(userId = "anonymous") {
-	if (!mockCartStorage.has(userId)) {
-		mockCartStorage.set(userId, []);
-	}
-	return mockCartStorage.get(userId)!;
-}
-
-// Helper function to find product details
-function getProductDetails(productId: string) {
-	return MockDatabase.findProductById(productId);
-}
 
 export const cartRouter = createTRPCRouter({
 	// Get user's cart items with product details
-	getItems: publicProcedure.query(async ({ ctx }) => {
+	getItems: protectedProcedure.query(async ({ ctx }) => {
 		try {
-			const userId = ctx.session?.user?.id || "anonymous";
-			const cartItems = getUserCart(userId);
+			const userId = ctx.session.user.id;
 
-			// Enrich cart items with product details
-			const enrichedItems = cartItems
-				.map((item) => {
-					const product = getProductDetails(item.productId);
-					if (!product) {
-						return null; // Product not found, will be filtered out
-					}
-
-					return {
-						id: item.id,
-						productId: item.productId,
-						quantity: item.quantity,
-						createdAt: item.createdAt,
-						updatedAt: item.updatedAt,
-						product: {
-							id: product.id,
-							name: product.name,
-							price: product.price,
-							originalPrice: product.originalPrice,
-							image: product.image,
-							stock: product.stock,
-							categoryId: product.categoryId,
-						},
-						subtotal: product.price * item.quantity,
-					};
+			const cartData = await db
+				.select({
+					cartItem: cartItems,
+					product: products,
+					primaryImage: productImages.url,
 				})
-				.filter(Boolean); // Remove null items (products not found)
+				.from(cartItems)
+				.leftJoin(products, eq(cartItems.productId, products.id))
+				.leftJoin(
+					productImages,
+					and(
+						eq(productImages.productId, products.id),
+						eq(productImages.isPrimary, true)
+					)
+				)
+				.where(eq(cartItems.userId, userId));
 
-			return enrichedItems;
+			return cartData.map(({ cartItem, product, primaryImage }) => {
+				if (!product) {
+					// Remove invalid cart items
+					db.delete(cartItems).where(eq(cartItems.id, cartItem.id));
+					return null;
+				}
+
+				const subtotal = Number(product.price) * cartItem.quantity;
+
+				return {
+					id: cartItem.id,
+					productId: cartItem.productId,
+					quantity: cartItem.quantity,
+					createdAt: cartItem.createdAt,
+					updatedAt: cartItem.updatedAt,
+					product: {
+						id: product.id,
+						name: product.name,
+						price: Number(product.price),
+						originalPrice: product.originalPrice ? Number(product.originalPrice) : undefined,
+						image: primaryImage || "/placeholder-product.jpg",
+						stock: product.stock,
+						categoryId: product.categoryId,
+					},
+					subtotal,
+				};
+			}).filter(Boolean); // Remove null entries
 		} catch (error) {
 			throw new TRPCError({
 				code: "INTERNAL_SERVER_ERROR",
@@ -80,26 +69,41 @@ export const cartRouter = createTRPCRouter({
 	}),
 
 	// Get cart summary
-	getSummary: publicProcedure.query(async ({ ctx }) => {
+	getSummary: protectedProcedure.query(async ({ ctx }) => {
 		try {
-			const userId = ctx.session?.user?.id || "anonymous";
-			const cartItems = getUserCart(userId);
+			const userId = ctx.session.user.id;
+
+			const cartData = await db
+				.select({
+					quantity: cartItems.quantity,
+					price: products.price,
+					originalPrice: products.originalPrice,
+				})
+				.from(cartItems)
+				.leftJoin(products, eq(cartItems.productId, products.id))
+				.where(eq(cartItems.userId, userId));
 
 			let itemCount = 0;
 			let subtotal = 0;
+			let savings = 0;
 
-			cartItems.forEach((item) => {
-				const product = getProductDetails(item.productId);
-				if (product) {
+			for (const item of cartData) {
+				if (item.price) {
 					itemCount += item.quantity;
-					subtotal += product.price * item.quantity;
+					const itemSubtotal = Number(item.price) * item.quantity;
+					subtotal += itemSubtotal;
+
+					if (item.originalPrice) {
+						const originalItemTotal = Number(item.originalPrice) * item.quantity;
+						savings += originalItemTotal - itemSubtotal;
+					}
 				}
-			});
+			}
 
 			return {
 				itemCount,
-				subtotal: subtotal.toString(),
-				savings: "0", // Could calculate based on originalPrice vs price
+				subtotal: subtotal.toFixed(2),
+				savings: savings.toFixed(2),
 			};
 		} catch (error) {
 			throw new TRPCError({
@@ -111,73 +115,83 @@ export const cartRouter = createTRPCRouter({
 	}),
 
 	// Add item to cart
-	addItem: publicProcedure
+	addItem: protectedProcedure
 		.input(
 			z.object({
 				productId: z.string(),
-				quantity: z.number().min(1).max(99),
+				quantity: z.number().min(1).default(1),
 			}),
 		)
-		.mutation(async ({ ctx, input }) => {
+		.mutation(async ({ input, ctx }) => {
 			try {
-				const userId = ctx.session?.user?.id || "anonymous";
-				const cart = getUserCart(userId);
+				const userId = ctx.session.user.id;
 
-				// Check if product exists
-				const product = getProductDetails(input.productId);
+				// Check if product exists and is active
+				const product = await db.query.products.findFirst({
+					where: and(eq(products.id, input.productId), eq(products.active, true)),
+				});
+
 				if (!product) {
 					throw new TRPCError({
 						code: "NOT_FOUND",
-						message: "Product not found",
+						message: "Product not found or inactive",
 					});
 				}
 
-				// Check stock availability
-				if (product.stock < input.quantity) {
+				// Check stock
+				if (product.trackQuantity && product.stock < input.quantity) {
 					throw new TRPCError({
 						code: "BAD_REQUEST",
-						message: `Only ${product.stock} items available in stock`,
+						message: "Insufficient stock",
 					});
 				}
 
 				// Check if item already exists in cart
-				const existingItemIndex = cart.findIndex(
-					(item) => item.productId === input.productId,
-				);
+				const existingItem = await db.query.cartItems.findFirst({
+					where: and(
+						eq(cartItems.userId, userId),
+						eq(cartItems.productId, input.productId)
+					),
+				});
 
-				if (existingItemIndex >= 0) {
-					// Update existing item
-					const existingItem = cart[existingItemIndex];
+				if (existingItem) {
+					// Update quantity
 					const newQuantity = existingItem.quantity + input.quantity;
 
-					// Check stock for new quantity
-					if (product.stock < newQuantity) {
+					if (product.trackQuantity && product.stock < newQuantity) {
 						throw new TRPCError({
 							code: "BAD_REQUEST",
-							message: `Only ${product.stock} items available in stock. You already have ${existingItem.quantity} in cart.`,
+							message: "Insufficient stock for requested quantity",
 						});
 					}
 
-					cart[existingItemIndex] = {
-						...existingItem,
-						quantity: newQuantity,
-						updatedAt: new Date(),
-					};
+					const [updated] = await db
+						.update(cartItems)
+						.set({ 
+							quantity: newQuantity,
+							updatedAt: new Date()
+						})
+						.where(eq(cartItems.id, existingItem.id))
+						.returning();
+
+					return updated;
 				} else {
 					// Add new item
-					cart.push({
-						id: crypto.randomUUID(),
-						userId,
-						productId: input.productId,
-						quantity: input.quantity,
-						createdAt: new Date(),
-						updatedAt: new Date(),
-					});
-				}
+					const [newItem] = await db
+						.insert(cartItems)
+						.values({
+							userId,
+							productId: input.productId,
+							quantity: input.quantity,
+						})
+						.returning();
 
-				return { success: true, message: "Item added to cart" };
+					return newItem;
+				}
 			} catch (error) {
-				if (error instanceof TRPCError) throw error;
+				if (error instanceof TRPCError) {
+					throw error;
+				}
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "Failed to add item to cart",
@@ -186,82 +200,55 @@ export const cartRouter = createTRPCRouter({
 			}
 		}),
 
-	// Remove item from cart
-	removeItem: publicProcedure
-		.input(z.object({ itemId: z.string() }))
-		.mutation(async ({ ctx, input }) => {
-			try {
-				const userId = ctx.session?.user?.id || "anonymous";
-				const cart = getUserCart(userId);
-
-				const itemIndex = cart.findIndex((item) => item.id === input.itemId);
-				if (itemIndex === -1) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Cart item not found",
-					});
-				}
-
-				cart.splice(itemIndex, 1);
-				return { success: true, message: "Item removed from cart" };
-			} catch (error) {
-				if (error instanceof TRPCError) throw error;
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to remove item from cart",
-					cause: error,
-				});
-			}
-		}),
-
-	// Update quantity
-	updateQuantity: publicProcedure
+	// Update item quantity
+	updateQuantity: protectedProcedure
 		.input(
 			z.object({
 				itemId: z.string(),
-				quantity: z.number().min(1).max(99),
+				quantity: z.number().min(1),
 			}),
 		)
-		.mutation(async ({ ctx, input }) => {
+		.mutation(async ({ input, ctx }) => {
 			try {
-				const userId = ctx.session?.user?.id || "anonymous";
-				const cart = getUserCart(userId);
+				const userId = ctx.session.user.id;
 
-				const itemIndex = cart.findIndex((item) => item.id === input.itemId);
-				if (itemIndex === -1) {
+				// Get cart item and verify ownership
+				const cartItem = await db.query.cartItems.findFirst({
+					where: and(eq(cartItems.id, input.itemId), eq(cartItems.userId, userId)),
+					with: {
+						product: true,
+					},
+				});
+
+				if (!cartItem) {
 					throw new TRPCError({
 						code: "NOT_FOUND",
 						message: "Cart item not found",
 					});
 				}
 
-				const item = cart[itemIndex];
-				const product = getProductDetails(item.productId);
-
-				if (!product) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Product not found",
-					});
-				}
-
-				// Check stock availability
-				if (product.stock < input.quantity) {
+				// Check stock
+				if (cartItem.product.trackQuantity && cartItem.product.stock < input.quantity) {
 					throw new TRPCError({
 						code: "BAD_REQUEST",
-						message: `Only ${product.stock} items available in stock`,
+						message: "Insufficient stock",
 					});
 				}
 
-				cart[itemIndex] = {
-					...item,
-					quantity: input.quantity,
-					updatedAt: new Date(),
-				};
+				const [updated] = await db
+					.update(cartItems)
+					.set({ 
+						quantity: input.quantity,
+						updatedAt: new Date()
+					})
+					.where(eq(cartItems.id, input.itemId))
+					.returning();
 
-				return { success: true, message: "Cart updated" };
+				return updated;
 			} catch (error) {
-				if (error instanceof TRPCError) throw error;
+				if (error instanceof TRPCError) {
+					throw error;
+				}
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "Failed to update cart item",
@@ -270,12 +257,47 @@ export const cartRouter = createTRPCRouter({
 			}
 		}),
 
+	// Remove item from cart
+	removeItem: protectedProcedure
+		.input(z.object({ itemId: z.string() }))
+		.mutation(async ({ input, ctx }) => {
+			try {
+				const userId = ctx.session.user.id;
+
+				// Verify ownership and delete
+				const [deleted] = await db
+					.delete(cartItems)
+					.where(and(eq(cartItems.id, input.itemId), eq(cartItems.userId, userId)))
+					.returning();
+
+				if (!deleted) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Cart item not found",
+					});
+				}
+
+				return deleted;
+			} catch (error) {
+				if (error instanceof TRPCError) {
+					throw error;
+				}
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to remove cart item",
+					cause: error,
+				});
+			}
+		}),
+
 	// Clear cart
-	clearCart: publicProcedure.mutation(async ({ ctx }) => {
+	clearCart: protectedProcedure.mutation(async ({ ctx }) => {
 		try {
-			const userId = ctx.session?.user?.id || "anonymous";
-			mockCartStorage.set(userId, []);
-			return { success: true, message: "Cart cleared" };
+			const userId = ctx.session.user.id;
+
+			await db.delete(cartItems).where(eq(cartItems.userId, userId));
+
+			return { success: true };
 		} catch (error) {
 			throw new TRPCError({
 				code: "INTERNAL_SERVER_ERROR",

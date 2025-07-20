@@ -108,8 +108,12 @@ export const useUpdateProduct = () => {
 	const utils = api.useUtils();
 	return api.products.update.useMutation({
 		onSuccess: (data) => {
-			utils.products.getById.invalidate({ id: data.id });
-			utils.products.getBySlug.invalidate({ slug: data.slug });
+			if (data && 'id' in data && data.id) {
+				utils.products.getById.invalidate({ id: data.id });
+			}
+			if (data && 'slug' in data && data.slug) {
+				utils.products.getBySlug.invalidate({ slug: data.slug });
+			}
 			utils.products.getAll.invalidate();
 			toast.success("Product updated successfully!");
 		},
@@ -136,7 +140,9 @@ export const useUpdateProductStock = () => {
 	const utils = api.useUtils();
 	return api.products.updateStock.useMutation({
 		onSuccess: (data) => {
-			utils.products.getById.invalidate({ id: data.id });
+			if (data && 'id' in data && data.id) {
+				utils.products.getById.invalidate({ id: data.id });
+			}
 			utils.products.getAll.invalidate();
 			toast.success("Stock updated successfully!");
 		},
@@ -224,8 +230,12 @@ export const useUpdateCategory = () => {
 	const utils = api.useUtils();
 	return api.categories.update.useMutation({
 		onSuccess: (data) => {
-			utils.categories.getById.invalidate({ id: data.id });
-			utils.categories.getBySlug.invalidate({ slug: data.slug });
+			if (data && 'id' in data && data.id) {
+				utils.categories.getById.invalidate({ id: data.id });
+			}
+			if (data && 'slug' in data && data.slug) {
+				utils.categories.getBySlug.invalidate({ slug: data.slug });
+			}
 			utils.categories.getAll.invalidate();
 			utils.categories.getFeatured.invalidate();
 			toast.success("Category updated successfully!");
