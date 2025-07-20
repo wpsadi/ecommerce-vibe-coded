@@ -3,10 +3,10 @@ import type { Config } from "drizzle-kit";
 import { env } from "@/env";
 
 export default {
-	schema: "./src/server/db/schema.ts",
-	dialect: "sqlite",
+	schema: "./src/server/db/schema-pg.ts",
+	dialect: "postgresql",
 	dbCredentials: {
-		url: "dev.db",
+		url: env.DATABASE_URL,
 	},
 	tablesFilter: ["ecommerce_*"],
 } satisfies Config;

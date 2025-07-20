@@ -1,7 +1,7 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 
 import { db } from "@/server/db";
-import { type NewCategory, categories, products } from "@/server/db/schema";
+import { type NewCategory, categories, products } from "@/server/db/schema-pg";
 
 export async function getAllCategories() {
 	return await db

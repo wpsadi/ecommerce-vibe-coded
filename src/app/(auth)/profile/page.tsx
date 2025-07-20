@@ -15,7 +15,7 @@ import {
 	useUpdateAddress,
 	useUpdateProfile,
 } from "@/hooks/use-trpc-hooks";
-import type { NewAddress } from "@/server/db/schema";
+import type { NewAddress } from "@/server/db/schema-pg";
 import { api } from "@/trpc/react";
 import { Calendar, Edit, Mail, Phone, Plus, User } from "lucide-react";
 import { useRouter } from "next/navigation";

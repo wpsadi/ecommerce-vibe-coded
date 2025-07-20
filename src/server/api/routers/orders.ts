@@ -8,7 +8,7 @@ import {
 	orders,
 	products,
 	users,
-} from "@/server/db/schema";
+} from "@/server/db/schema-pg";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, or, sql } from "drizzle-orm";
 import { z } from "zod";

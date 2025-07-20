@@ -4,7 +4,7 @@ import {
 	publicProcedure,
 } from "@/server/api/trpc";
 import { db } from "@/server/db";
-import { wishlistItems, products, productImages, categories } from "@/server/db/schema";
+import { wishlistItems, products, productImages, categories } from "@/server/db/schema-pg";
 import { TRPCError } from "@trpc/server";
 import { and, eq, count } from "drizzle-orm";
 import { z } from "zod";

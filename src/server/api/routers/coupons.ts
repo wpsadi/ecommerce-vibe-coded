@@ -3,7 +3,7 @@ import {
 	protectedProcedure,
 	publicProcedure,
 } from "@/server/api/trpc";
-import { coupons } from "@/server/db/schema";
+import { coupons } from "@/server/db/schema-pg";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";

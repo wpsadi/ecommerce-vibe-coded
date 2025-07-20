@@ -3,7 +3,7 @@ import { db } from "@/server/db";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { and, asc, desc, eq, ilike, sql, count, avg, inArray } from "drizzle-orm";
-import { products, productImages, productReviews, categories } from "@/server/db/schema";
+import { products, productImages, productReviews, categories } from "@/server/db/schema-pg";
 
 export const productsRouter = createTRPCRouter({
   getAll: publicProcedure
