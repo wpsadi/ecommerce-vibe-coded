@@ -27,6 +27,7 @@ import {
 	inArray
 } from "drizzle-orm";
 import { mockProducts } from "@/lib/mock-data";
+import { MockDatabase } from "@/lib/mock-database";
 
 const productFilterSchema = z.object({
 	categoryId: z.string().optional(),
@@ -130,8 +131,8 @@ export const productsRouter = createTRPCRouter({
 						throw new Error("Database not available");
 					},
 					() => {
-						// Fallback to mock data
-						let filteredProducts = [...mockProducts];
+						// Fallback to persistent mock data
+						let filteredProducts = MockDatabase.getProducts();
 
 						// Apply filters
 						if (input.categoryId) {
@@ -255,7 +256,7 @@ export const productsRouter = createTRPCRouter({
 						return product[0];
 					},
 					() => {
-						const product = mockProducts.find(p => p.id === input.id);
+						const product = MockDatabase.findProductById(input.id);
 						if (!product) {
 							throw new TRPCError({
 								code: "NOT_FOUND",
@@ -326,7 +327,7 @@ export const productsRouter = createTRPCRouter({
 					},
 					() => {
 						// For mock data, use id as slug
-						const product = mockProducts.find(p => p.id === input.slug);
+						const product = MockDatabase.findProductById(input.slug);
 						if (!product) {
 							throw new TRPCError({
 								code: "NOT_FOUND",
@@ -389,7 +390,7 @@ export const productsRouter = createTRPCRouter({
 						return images;
 					},
 					() => {
-						const product = mockProducts.find(p => p.id === input.productId);
+						const product = MockDatabase.findProductById(input.productId);
 						if (!product) {
 							return [];
 						}
@@ -435,7 +436,7 @@ export const productsRouter = createTRPCRouter({
 						throw new Error("Database not available");
 					},
 					() => {
-						const product = mockProducts.find(p => p.id === input.productId);
+						const product = MockDatabase.findProductById(input.productId);
 						if (!product) {
 							return [];
 						}
@@ -467,17 +468,85 @@ export const productsRouter = createTRPCRouter({
 			}
 		}),
 
-	// Create product (admin only) - Not implemented for now
+	// Create product (admin only)
 	create: protectedProcedure
 		.input(createProductSchema)
 		.mutation(async ({ ctx, input }) => {
 			try {
 				checkAdminPermission(ctx);
 				
-				throw new TRPCError({
-					code: "NOT_IMPLEMENTED",
-					message: "Product creation is not yet implemented. Database setup required.",
-				});
+				return await withDatabaseFallback(
+					async () => {
+						// Database operation
+						const processedData = {
+							...input,
+							price: input.price,
+							originalPrice: input.originalPrice || null,
+							costPrice: input.costPrice || null,
+							id: crypto.randomUUID(),
+						};
+
+						const newProduct = await ctx.db
+							.insert(products)
+							.values(processedData)
+							.returning();
+
+						if (!newProduct[0]) {
+							throw new TRPCError({
+								code: "INTERNAL_SERVER_ERROR",
+								message: "Failed to create product",
+							});
+						}
+
+						return newProduct[0];
+					},
+					() => {
+						// Fallback: Create using persistent mock database
+						const newProduct = MockDatabase.createProduct({
+							name: input.name,
+							price: Number(input.price),
+							originalPrice: input.originalPrice ? Number(input.originalPrice) : undefined,
+							image: "/placeholder.svg",
+							category: "General", // Will be updated based on categoryId
+							categoryId: input.categoryId,
+							rating: 0,
+							reviews: 0,
+							description: input.description,
+							specifications: input.specifications,
+							stock: input.stock,
+							discount: 0,
+							featured: input.featured,
+						});
+
+						return {
+							id: newProduct.id,
+							name: newProduct.name,
+							slug: newProduct.id,
+							description: newProduct.description,
+							shortDescription: input.shortDescription || null,
+							sku: input.sku || null,
+							price: newProduct.price.toString(),
+							originalPrice: newProduct.originalPrice?.toString() || null,
+							costPrice: input.costPrice || null,
+							categoryId: newProduct.categoryId,
+							stock: newProduct.stock,
+							lowStockThreshold: input.lowStockThreshold,
+							weight: input.weight || null,
+							dimensions: input.dimensions || null,
+							specifications: newProduct.specifications,
+							tags: input.tags,
+							featured: newProduct.featured,
+							active: input.active,
+							digital: input.digital,
+							trackQuantity: input.trackQuantity,
+							allowBackorder: input.allowBackorder,
+							metaTitle: input.metaTitle || null,
+							metaDescription: input.metaDescription || null,
+							createdAt: new Date(),
+							updatedAt: new Date(),
+						};
+					}
+				);
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
 				console.error("Products create error:", error);
@@ -489,17 +558,82 @@ export const productsRouter = createTRPCRouter({
 			}
 		}),
 
-	// Update product (admin only) - Not implemented for now
+	// Update product (admin only)
 	update: protectedProcedure
 		.input(updateProductSchema)
 		.mutation(async ({ ctx, input }) => {
 			try {
 				checkAdminPermission(ctx);
 				
-				throw new TRPCError({
-					code: "NOT_IMPLEMENTED",
-					message: "Product update is not yet implemented. Database setup required.",
-				});
+				return await withDatabaseFallback(
+					async () => {
+						// Database operation
+						const { id, ...updateData } = input;
+						
+						// Convert price to numeric for database
+						const processedData = {
+							...updateData,
+							price: updateData.price ? updateData.price : undefined,
+							originalPrice: updateData.originalPrice ? updateData.originalPrice : undefined,
+							costPrice: updateData.costPrice ? updateData.costPrice : undefined,
+						};
+
+						const updatedProduct = await ctx.db
+							.update(products)
+							.set({
+								...processedData,
+								updatedAt: new Date(),
+							})
+							.where(eq(products.id, id))
+							.returning();
+
+						if (!updatedProduct[0]) {
+							throw new TRPCError({
+								code: "NOT_FOUND",
+								message: "Product not found",
+							});
+						}
+
+						return updatedProduct[0];
+					},
+					() => {
+						// Fallback: Update using persistent mock database
+						const { id, ...updateData } = input;
+						
+						const updates: Partial<any> = {};
+						if (updateData.name) updates.name = updateData.name;
+						if (updateData.description) updates.description = updateData.description;
+						if (updateData.price) updates.price = Number(updateData.price);
+						if (updateData.originalPrice) updates.originalPrice = Number(updateData.originalPrice);
+						if (updateData.categoryId) updates.categoryId = updateData.categoryId;
+						if (updateData.stock !== undefined) updates.stock = updateData.stock;
+						if (updateData.featured !== undefined) updates.featured = updateData.featured;
+						if (updateData.specifications) updates.specifications = updateData.specifications;
+
+						const updatedProduct = MockDatabase.updateProduct(id, updates);
+						
+						if (!updatedProduct) {
+							throw new TRPCError({
+								code: "NOT_FOUND",
+								message: "Product not found",
+							});
+						}
+
+						return {
+							id: updatedProduct.id,
+							name: updatedProduct.name,
+							slug: updatedProduct.id,
+							description: updatedProduct.description,
+							price: updatedProduct.price.toString(),
+							categoryId: updatedProduct.categoryId,
+							stock: updatedProduct.stock,
+							featured: updatedProduct.featured || false,
+							active: true,
+							updatedAt: new Date(),
+							createdAt: new Date(),
+						};
+					}
+				);
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
 				console.error("Products update error:", error);
@@ -511,17 +645,50 @@ export const productsRouter = createTRPCRouter({
 			}
 		}),
 
-	// Delete product (admin only) - Not implemented for now
+	// Delete product (admin only)
 	delete: protectedProcedure
 		.input(z.object({ id: z.string().min(1) }))
 		.mutation(async ({ ctx, input }) => {
 			try {
 				checkAdminPermission(ctx);
 
-				throw new TRPCError({
-					code: "NOT_IMPLEMENTED",
-					message: "Product deletion is not yet implemented. Database setup required.",
-				});
+				return await withDatabaseFallback(
+					async () => {
+						// Database operation
+						const deletedProduct = await ctx.db
+							.delete(products)
+							.where(eq(products.id, input.id))
+							.returning();
+
+						if (!deletedProduct[0]) {
+							throw new TRPCError({
+								code: "NOT_FOUND",
+								message: "Product not found",
+							});
+						}
+
+						return { success: true, deletedProduct: deletedProduct[0] };
+					},
+					() => {
+						// Fallback: Delete using persistent mock database
+						const deletedProduct = MockDatabase.deleteProduct(input.id);
+						
+						if (!deletedProduct) {
+							throw new TRPCError({
+								code: "NOT_FOUND",
+								message: "Product not found",
+							});
+						}
+
+						return { 
+							success: true, 
+							deletedProduct: {
+								id: deletedProduct.id,
+								name: deletedProduct.name,
+							}
+						};
+					}
+				);
 			} catch (error) {
 				if (error instanceof TRPCError) throw error;
 				console.error("Products delete error:", error);

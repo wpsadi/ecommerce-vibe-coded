@@ -274,7 +274,7 @@ function CategoryCard({
 	const router = useRouter();
 
 	const handleCategoryClick = () => {
-		router.push(`/products?category=${category.id}`);
+		router.push(`/category/${category.id}`);
 	};
 
 	if (viewMode === "list") {

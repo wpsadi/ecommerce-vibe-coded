@@ -10,7 +10,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { type Product, categories, mockProducts } from "@/lib/mock-data";
+import { type Product, categories } from "@/lib/mock-data";
+import { MockDatabase } from "@/lib/mock-database";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -29,9 +30,9 @@ export default function CategoryPage() {
 		setLoading(true);
 
 		setTimeout(() => {
-			const filtered = mockProducts.filter(
-				(product) =>
-					product.category.toLowerCase() === categoryName.toLowerCase(),
+			// Filter by categoryId instead of category name for better accuracy
+			const filtered = MockDatabase.getProducts().filter(
+				(product) => product.categoryId === categoryId,
 			);
 
 			// Sort products
@@ -58,7 +59,7 @@ export default function CategoryPage() {
 			setProducts(filtered);
 			setLoading(false);
 		}, 500);
-	}, [categoryName, sortBy]);
+	}, [categoryId, sortBy]);
 
 	if (!category) {
 		return (
