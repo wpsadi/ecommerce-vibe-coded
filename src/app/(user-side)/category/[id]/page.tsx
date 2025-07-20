@@ -29,9 +29,9 @@ export default function CategoryPage() {
 		setLoading(true);
 
 		setTimeout(() => {
+			// Filter by categoryId instead of category name for better accuracy
 			const filtered = mockProducts.filter(
-				(product) =>
-					product.category.toLowerCase() === categoryName.toLowerCase(),
+				(product) => product.categoryId === categoryId,
 			);
 
 			// Sort products
@@ -58,7 +58,7 @@ export default function CategoryPage() {
 			setProducts(filtered);
 			setLoading(false);
 		}, 500);
-	}, [categoryName, sortBy]);
+	}, [categoryId, sortBy]);
 
 	if (!category) {
 		return (
