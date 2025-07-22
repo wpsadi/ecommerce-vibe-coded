@@ -3,7 +3,7 @@ import {
 	protectedProcedure,
 	publicProcedure,
 } from "@/server/api/trpc";
-import { type NewAddress, addresses, users } from "@/server/db/schema";
+import { type NewAddress, addresses, users } from "@/server/db/schema-pg";
 import { TRPCError } from "@trpc/server";
 import { hash } from "bcryptjs";
 import { and, desc, eq, like, or } from "drizzle-orm";

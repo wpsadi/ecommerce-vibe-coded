@@ -6,7 +6,7 @@ import {
 	productReviews,
 	products,
 	users,
-} from "@/server/db/schema";
+} from "@/server/db/schema-pg";
 import { and, asc, desc, eq, inArray, like, or, sql } from "drizzle-orm";
 
 export async function getAllProducts(options?: {

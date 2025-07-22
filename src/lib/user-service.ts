@@ -1,5 +1,5 @@
 import { db } from "@/server/db";
-import { type NewUser, users } from "@/server/db/schema";
+import { type NewUser, users } from "@/server/db/schema-pg";
 import { eq } from "drizzle-orm";
 
 /**

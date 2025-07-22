@@ -37,7 +37,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import type { Product as DBProduct } from "@/server/db/schema";
+import type { Product as DBProduct } from "@/server/db/schema-pg";
 
 type Product = DBProduct & {
 	primaryImage?: string;

@@ -1,5 +1,5 @@
-import { db } from "../src/server/db/index.ts";
-import { categories, products, productImages } from "../src/server/db/schema.ts";
+import { db } from "../src/server/db/index";
+import { categories, products, productImages } from "../src/server/db/schema-pg";
 
 async function seed() {
 	console.log("🌱 Seeding database...");

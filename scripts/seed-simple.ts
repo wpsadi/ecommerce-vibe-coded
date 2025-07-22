@@ -1,9 +1,10 @@
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
-import { categories, products, productImages } from "../src/server/db/schema.ts";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import { categories, products, productImages } from "../src/server/db/schema-pg";
 
-const sqlite = new Database("dev.db");
-const db = drizzle(sqlite);
+const DATABASE_URL = process.env.DATABASE_URL || "postgresql://postgres:password@localhost:5432/ecommerce";
+const conn = postgres(DATABASE_URL);
+const db = drizzle(conn);
 
 async function seed() {
 	console.log("🌱 Seeding database...");
